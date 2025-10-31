@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 variable "environment" {
   type        = string
-  description = "The environment name, defined in envrionments vars."
+  description = "The environment name, defined in environments vars."
 }
 
 variable "aws_region" {
@@ -81,6 +81,18 @@ variable "service_autoscale_target_value_cpu" {
   type        = number
   description = "Target CPU percentage for the ECS Service to autoscale on"
   default     = 50 # 100 disables autoscaling using CPU as a metric
+}
+
+variable "service_autoscale_scale_in_cooldown" {
+  type        = number
+  description = "Cooldown in seconds for ECS Service scale in (run fewer tasks)"
+  default     = 300
+}
+
+variable "service_autoscale_scale_out_cooldown" {
+  type        = number
+  description = "Cooldown in seconds for ECS Service scale out (add more tasks)"
+  default     = 600
 }
 
 variable "service_scaledown_schedule" {
