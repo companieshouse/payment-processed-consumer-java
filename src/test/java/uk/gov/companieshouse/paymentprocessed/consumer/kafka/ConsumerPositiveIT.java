@@ -19,7 +19,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.payments.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
 import java.io.ByteArrayOutputStream;

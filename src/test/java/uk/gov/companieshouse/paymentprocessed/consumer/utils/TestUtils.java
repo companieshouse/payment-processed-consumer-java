@@ -7,10 +7,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jetbrains.annotations.NotNull;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.payments.PaymentPatchRequestApi;
-import uk.gov.companieshouse.api.payments.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 
-import java.time.OffsetDateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
 
@@ -30,7 +32,7 @@ public class TestUtils {
         return getAPIResponse(paymentResponse);
     }
 
-    public static PaymentPatchRequestApi getPaymentPatchRequestApi() throws JsonProcessingException {
+    public static PaymentPatchRequestApi getPaymentPatchRequestApi() throws JsonProcessingException, ParseException {
         String json = "{\"completed_at\":\"2025-09-24T06:44:32.354Z\",\"status\":\"paid\",\"reference\":\"Register_ACSP_174365-968117-586962\"}";
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         JsonNode rootNode = objectMapper.readTree(json);
@@ -40,7 +42,9 @@ public class TestUtils {
         PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();
         paymentPatchRequestApi.setPaymentReference(reference);
         paymentPatchRequestApi.setStatus(status);
-        paymentPatchRequestApi.setPaidAt(OffsetDateTime.parse(paidAt));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        Date date = formatter.parse(paidAt);
+        paymentPatchRequestApi.setPaidAt(date);
         return paymentPatchRequestApi;
     }
 

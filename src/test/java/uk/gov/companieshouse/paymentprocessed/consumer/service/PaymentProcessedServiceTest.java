@@ -6,14 +6,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import payments.payment_processed;
-import uk.gov.companieshouse.api.payments.PaymentLinks;
-import uk.gov.companieshouse.api.payments.PaymentPatchRequestApi;
-import uk.gov.companieshouse.api.payments.PaymentResponse;
-import uk.gov.companieshouse.api.payments.Refund;
+import uk.gov.companieshouse.api.model.payment.PaymentLinks;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.Refund;
 import uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClient;
 import uk.gov.companieshouse.paymentprocessed.consumer.factory.PaymentPatchRequestApiFactoryImpl;
 
-import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,14 +49,14 @@ class PaymentProcessedServiceTest {
 
         PaymentResponse paymentResponse = mock(PaymentResponse.class);
         when(paymentResponse.getStatus()).thenReturn("paid");
-        when(paymentResponse.getCompletedAt()).thenReturn(OffsetDateTime.now());
+        when(paymentResponse.getCompletedAt()).thenReturn(new Date());
         when(paymentResponse.getLinks()).thenReturn(mock(PaymentLinks.class));
         when(paymentResponse.getLinks().getResource()).thenReturn("http://example.com/resource");
 
         when(paymentsProcessedApiClient.getPayment("payment123")).thenReturn(Optional.of(paymentResponse));
 
         PaymentPatchRequestApi patchRequest = mock(PaymentPatchRequestApi.class);
-        when(paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(anyString(), any(OffsetDateTime.class), anyString()))
+        when(paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(anyString(), any(Date.class), anyString()))
                 .thenReturn(patchRequest);
 
         // Act
@@ -76,7 +76,7 @@ class PaymentProcessedServiceTest {
         Refund refund = mock(Refund.class);
         when(refund.getRefundId()).thenReturn("refund123");
         when(refund.getStatus()).thenReturn("approved");
-        when(refund.getCreatedAt()).thenReturn(OffsetDateTime.now());
+        when(refund.getCreatedAt()).thenReturn(new Date());
         when(refund.getRefundReference()).thenReturn("REF123");
 
         PaymentResponse paymentResponse = mock(PaymentResponse.class);
@@ -87,7 +87,7 @@ class PaymentProcessedServiceTest {
         when(paymentsProcessedApiClient.getPayment("payment123")).thenReturn(Optional.of(paymentResponse));
 
         PaymentPatchRequestApi patchRequest = mock(PaymentPatchRequestApi.class);
-        when(paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(anyString(), any(OffsetDateTime.class), anyString()))
+        when(paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(anyString(), anyString()))
                 .thenReturn(patchRequest);
 
         // Act

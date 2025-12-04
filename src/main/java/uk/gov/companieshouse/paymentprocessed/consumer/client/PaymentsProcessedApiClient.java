@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
-import uk.gov.companieshouse.api.payments.PaymentPatchRequestApi;
-import uk.gov.companieshouse.api.payments.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
@@ -57,7 +57,7 @@ public class PaymentsProcessedApiClient {
         Optional<PaymentResponse> response = Optional.empty();
         LOGGER.info(String.format("Initiating %s resource ID: %s and resource URI: %s", GET_PAYMENT_CALL, resourceID, resourceUri));
         try {
-            response = Optional.ofNullable(apiClient.privatePayment().paymentProcessedConsumerGet(resourceUri)
+            response = Optional.ofNullable(apiClient.privatePayment().getPaymentSession(resourceUri)
                     .execute()
                     .getData());
             if (response.isPresent()) {

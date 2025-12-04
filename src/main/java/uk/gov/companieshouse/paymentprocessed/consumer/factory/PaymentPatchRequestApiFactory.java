@@ -1,11 +1,14 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.factory;
 
 import org.springframework.stereotype.Component;
-import uk.gov.companieshouse.api.payments.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 
-import java.time.OffsetDateTime;
+import java.util.Date;
 
 @Component
 public interface PaymentPatchRequestApiFactory {
-    PaymentPatchRequestApi createPaymentPatchRequest(String status, OffsetDateTime paidAt, String paymentReference);
+    PaymentPatchRequestApi createPaymentPatchRequest(String status, Date paidAt, String paymentReference);
+
+    PaymentPatchRequestApi createPaymentRefundPatchRequest(String refundId, String paymentReference);
+
 }
