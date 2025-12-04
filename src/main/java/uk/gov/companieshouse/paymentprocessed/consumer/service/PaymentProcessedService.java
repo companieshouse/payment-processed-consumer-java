@@ -2,16 +2,15 @@ package uk.gov.companieshouse.paymentprocessed.consumer.service;
 
 import org.springframework.stereotype.Service;
 import payments.payment_processed;
-import uk.gov.companieshouse.api.payments.PaymentPatchRequestApi;
-import uk.gov.companieshouse.api.payments.PaymentResponse;
-import uk.gov.companieshouse.api.payments.Refund;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.Refund;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClient;
 import uk.gov.companieshouse.paymentprocessed.consumer.factory.PaymentPatchRequestApiFactoryImpl;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
@@ -43,14 +42,18 @@ public class PaymentProcessedService {
         PaymentPatchRequestApi paymentPatchRequestApi = null;
         if (paymentProcessed.getRefundId() != null && paymentResponse.getRefunds() != null) {
             LOGGER.info("Refund ID present in message, for PaymentResourceId" + paymentResourceId);
+            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(paymentProcessed.getRefundId(), paymentProcessed.getPaymentResourceId());
             Optional<Refund> refundOptional = paymentResponse.getRefunds().stream().filter(refund -> refund.getRefundId().equals(paymentProcessed.getRefundId())).findFirst();
             if (refundOptional.isPresent()) {
                 Refund refund = refundOptional.get();
-                paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(refund.getStatus(), OffsetDateTime.from(refund.getCreatedAt()), refund.getRefundReference());
+                paymentPatchRequestApi.setRefundReference(refund.getRefundReference());
+                paymentPatchRequestApi.setRefundStatus(refund.getStatus());
+                paymentPatchRequestApi.setRefundProcessedAt(refund.getCreatedAt());
                 patchUri += "/refunds";
             }
+
         } else {
-            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(paymentResponse.getStatus(), OffsetDateTime.from(paymentResponse.getCompletedAt()), paymentProcessed.getPaymentResourceId());
+            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(paymentResponse.getStatus(), paymentResponse.getCompletedAt(), paymentProcessed.getPaymentResourceId());
         }
         paymentsProcessedApiClient.patchPayment(patchUri, paymentPatchRequestApi);
         LOGGER.info("Payment Patched Successfully, for PaymentResourceId " + paymentResourceId);
