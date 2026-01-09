@@ -64,7 +64,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- start fixes to vulnerable transitive dependencies-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -173,16 +172,6 @@
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.msgpack</groupId>-->
-        <!--            <artifactId>msgpack-core</artifactId>-->
-        <!--            <version>0.9.11</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.bitbucket.b_c</groupId>-->
-        <!--            <artifactId>jose4j</artifactId>-->
-        <!--            <version>0.9.6</version>-->
-        <!--        </dependency>-->
     </dependencies>
     <build>
         <plugins>
