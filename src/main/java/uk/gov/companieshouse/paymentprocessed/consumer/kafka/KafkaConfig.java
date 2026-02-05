@@ -94,7 +94,7 @@ public class KafkaConfig {
     public RetryTopicConfiguration retryTopicConfiguration(KafkaTemplate<String, Object> template,
                                                            @Value("${payment.processed.group.name}") String groupId,
                                                            @Value("${maximum.retry.attempts}") int attempts,
-                                                           @Value("${retry.throttle.rate.seconds}") int delay) {
+                                                           @Value("${consumer.backoff-delay}") int delay) {
         return RetryTopicConfigurationBuilder
                 .newInstance()
                 .doNotAutoCreateRetryTopics() // this is necessary to prevent failing connection during loading of spring app context
