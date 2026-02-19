@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
+import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.logging.Logger;
@@ -88,24 +89,19 @@ public class PaymentsProcessedApiClient {
                     ex, DataMapHolder.getLogMap());
             throw new NonRetryableException(String.format(URL_CREATE_EXCEPTION_MESSAGE, PATCH_PAYMENT_CALL, paymentsPatchUri), ex);
         }
-        LOGGER.info(String.format("URL: %s for PaymentsPatchUri: %s", url, paymentsPatchUri));
-        String protocol = url.getProtocol() + "://" + url.getHost();
-        apiClient.setBasePaymentsPath(protocol);
+        LOGGER.info(String.format("URL: %s for PaymentsPatchUri: %s", url, paymentsPatchUri), DataMapHolder.getLogMap());
+        String basePath = url.getProtocol() + "://" + url.getHost();
+        apiClient.setBasePaymentsPath(basePath);
         apiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
-        paymentsPatchUri = paymentsPatchUri.substring(protocol.length());
-        LOGGER.info(String.format("PaymentsPatchUri after substring: %s", paymentsPatchUri));
-        Void response;
+        paymentsPatchUri = paymentsPatchUri.substring(basePath.length());
+        LOGGER.info(String.format("PaymentsPatchUri after substring: %s", paymentsPatchUri), DataMapHolder.getLogMap());
+        ApiResponse<Void> response;
         try {
-            LOGGER.info(String.format("Initiating %s for resource URI: %s and PaymentPatchRequestApi: %s",
-                    PATCH_PAYMENT_CALL, paymentsPatchUri, objectMapper.writeValueAsString(paymentPatchRequestApi)));
             response = apiClient.privatePayment().paymentProcessedConsumerPatch(paymentsPatchUri, paymentPatchRequestApi)
-                    .execute()
-                    .getData();
-            LOGGER.info(String.format("Successfully called %s for resource URI: %s and response: %s",
-                    PATCH_PAYMENT_CALL, paymentsPatchUri, objectMapper.writeValueAsString(response)));
+                    .execute();
+            LOGGER.info(String.format("Successfully called %s for resource URI: %s with status code: %s",
+                    PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode()), DataMapHolder.getLogMap());
         } catch (ApiErrorResponseException ex) {
-            responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
-        } catch (JsonProcessingException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         }
     }

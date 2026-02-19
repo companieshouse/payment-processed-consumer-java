@@ -138,24 +138,6 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldHandleJsonProcessingExceptionWhenSendingPatchRequest() throws Exception {
-        Class<JsonProcessingException> exceptionClass = JsonProcessingException.class;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
-        when(privatePaymentResourceHandler.paymentProcessedConsumerPatch(TestUtils.RESOURCE_LINK, paymentPatchRequestApi)).thenReturn(paymentProcessedConsumerPatch);
-        doReturn(getAPIResponse(null)).when(paymentProcessedConsumerPatch).execute();
-        doAnswer(invocation -> {
-                    Object arg = invocation.getArgument(0);
-                    if (arg == null)
-                        throw new JsonProcessingException("Mocked exception for PaymentResponse") {
-                        };
-                    return paymentPatchRequestApi.toString();
-                }
-        ).when(objectMapper).writeValueAsString(any());
-        paymentsProcessedApiClient.patchPayment(BASE_URL + TestUtils.RESOURCE_LINK, paymentPatchRequestApi);
-        verify(responseHandler).handle(anyString(), anyString(), any(exceptionClass));
-    }
-
-    @Test
     void shouldHandleGoneResourceWhenSendingGetRequest() throws Exception {
         HttpResponseException.Builder builder = new HttpResponseException.Builder(
                 HttpStatus.GONE.value(),
