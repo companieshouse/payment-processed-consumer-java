@@ -29,8 +29,8 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESP
 public class PaymentsProcessedApiClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(NAMESPACE);
     private static final String APPLICATION_MERGE_PATCH_JSON = "application/merge-patch+json";
-    private static final String GET_PAYMENT_CALL = "Payments Consumer API GET Payment";
-    private static final String PATCH_PAYMENT_CALL = "Payments Consumer API Patch Payment";
+    private static final String GET_PAYMENT_CALL = "GET Payment";
+    private static final String PATCH_PAYMENT_CALL = "Patch Payment";
     private final Supplier<InternalApiClient> internalApiClientFactory;
     private final ResponseHandler responseHandler;
     private final ObjectMapper objectMapper;
@@ -65,17 +65,12 @@ public class PaymentsProcessedApiClient {
             response = Optional.ofNullable(apiClient.privatePayment().getPaymentSession(resourceUri)
                     .execute()
                     .getData());
-            if (response.isPresent()) {
-                String jsonResponse = objectMapper.writeValueAsString(response.get());
-                LOGGER.info(String.format("Successfully called %s for resource ID: %s and response: %s", GET_PAYMENT_CALL, resourceID, jsonResponse));
-            }
+            loggingPaymentResponse(resourceID, response);
         } catch (ApiErrorResponseException ex) {
             LOGGER.error(String.format("Unable to obtain response from %s for resource ID: %s", GET_PAYMENT_CALL, resourceID));
             if (ex.getStatusCode() == HttpStatus.GONE.value() && checkSkipGoneResource(resourceID, skipGoneResource)) {
                 return Optional.empty();
             }
-            responseHandler.handle(GET_PAYMENT_CALL, resourceID, ex);
-        } catch (JsonProcessingException ex) {
             responseHandler.handle(GET_PAYMENT_CALL, resourceID, ex);
         } catch (URIValidationException ex) {
             responseHandler.handle(GET_PAYMENT_CALL, ex);
@@ -83,26 +78,43 @@ public class PaymentsProcessedApiClient {
         return response;
     }
 
+    private void loggingPaymentResponse(String resourceID, Optional<PaymentResponse> response) {
+        if (response.isPresent()) {
+            String jsonResponse;
+            try {
+                jsonResponse = objectMapper.writeValueAsString(response.get());
+                LOGGER.info(String.format("Successfully called %s for resource ID: %s and response: %s", GET_PAYMENT_CALL, resourceID, jsonResponse));
+            } catch (JsonProcessingException ex) {
+                responseHandler.handle(GET_PAYMENT_CALL, resourceID, ex);
+            }
+        }
+    }
+
     public void patchPayment(String paymentsPatchUri, PaymentPatchRequestApi paymentPatchRequestApi) {
         try {
-            LOGGER.info(String.format("Initiating %s , resource URI: %s and request %s", PATCH_PAYMENT_CALL, paymentsPatchUri, objectMapper.writeValueAsString(paymentPatchRequestApi)), DataMapHolder.getLogMap());
+            loggingRequestValue(paymentsPatchUri, paymentPatchRequestApi);
             webClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
                     .bodyValue(paymentPatchRequestApi)
                     .retrieve()
                     .toBodilessEntity()
-                    .doOnSuccess(response -> LOGGER.info(String.format("Successfully called %s for resource URI: %s with status code: %s",
-                            PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode()), DataMapHolder.getLogMap()))
+                    .doOnSuccess(response -> LOGGER.info(String.format("Successfully called PATCH payment for resource URI: %s with status code: %s", paymentsPatchUri, response.getStatusCode()), DataMapHolder.getLogMap()))
                     .block();
         } catch (WebClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
-        } catch (JsonProcessingException ex) {
-            responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {
-            String defaultErrorMessage = String.format("Unexpected error occurred during %s for resource URI: %s with message %s", PATCH_PAYMENT_CALL, paymentsPatchUri, ex.getMessage());
+            String defaultErrorMessage = String.format("Unexpected error occurred during PATCH request for resource URI: %s with message %s", paymentsPatchUri, ex.getMessage());
             LOGGER.error(defaultErrorMessage, DataMapHolder.getLogMap());
             throw new RetryableException(defaultErrorMessage, ex);
+        }
+    }
+
+    private void loggingRequestValue(String paymentsPatchUri, PaymentPatchRequestApi paymentPatchRequestApi) {
+        try {
+            LOGGER.debug(String.format("Initiating PATCH request for resource URI: %s and request %s", paymentsPatchUri, objectMapper.writeValueAsString(paymentPatchRequestApi)), DataMapHolder.getLogMap());
+        } catch (JsonProcessingException ex) {
+            responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         }
     }
 

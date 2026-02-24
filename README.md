@@ -100,7 +100,7 @@ the following configurations.
 ## Docker support
 
 Pull image from private CH registry by
-running `docker pull 169942020521.dkr.ecr.eu-west-1.amazonaws.com/local/payment-processed-consumer-java:latest` command
+running `docker pull 416670754337.dkr.ecr.eu-west-2.amazonaws.com/payment-processed-consumer-java:latest` command
 or run the following steps to build image locally:
 
 1. `export SSH_PRIVATE_KEY_PASSPHRASE='[your SSH key passhprase goes here]'` (optional, set only if SSH key is

@@ -64,7 +64,6 @@ public class ResponseHandler {
     public void handle(String apiCall, String resourceUri, JsonProcessingException ex) {
         LOGGER.error(String.format(JSON_PARSE_EXCEPTION_MESSAGE, apiCall, resourceUri),
                 ex, DataMapHolder.getLogMap());
-        throw new NonRetryableException(String.format(JSON_PARSE_EXCEPTION_MESSAGE, apiCall, resourceUri), ex);
     }
 
 }

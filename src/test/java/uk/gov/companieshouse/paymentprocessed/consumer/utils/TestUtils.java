@@ -1,18 +1,20 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jetbrains.annotations.NotNull;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.api.model.payment.PaymentLinks;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
+import uk.gov.companieshouse.api.model.payment.RefundModel;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
 
@@ -23,26 +25,44 @@ public class TestUtils {
     public static final String GET_URI = "/payments/P9hl8PWQQrKRBk1Zmc";
 
 
-    public static ApiResponse<PaymentResponse> getPaymentResponse() throws JsonProcessingException {
-        String json = "{\"amount\":\"55.00\",\"completed_at\":\"2025-09-24T06:44:32.354Z\",\"created_at\":\"2025-09-24T06:44:27.854Z\",\"description\":\"Application to register a Companies House authorised agent\",\"links\":{\"journey\":\"https://payments.local.org/payments/Bq286888xzSfXk/pay\",\"resource\":\"" + RESOURCE_LINK + "\",\"self\":\"payments/Bq286888xzSfXk\"},\"payment_method\":\"credit-card\",\"reference\":\"Register_ACSP_174365-968117-586962\",\"status\":\"paid\",\"etag\":\"34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679\",\"kind\":\"payment-session#payment-session\"}}";
-        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        PaymentResponse paymentResponse = objectMapper.readValue(json, PaymentResponse.class);
+    public static ApiResponse<PaymentResponse> getPaymentResponse() throws ParseException {
+        PaymentResponse paymentResponse = new PaymentResponse();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        // Set values directly using setters
+        paymentResponse.setAmount("55.00");
+        paymentResponse.setCompletedAt(formatter.parse("2025-09-24T06:44:32.354Z"));
+        paymentResponse.setCreatedAt(formatter.parse("2025-09-24T06:44:27.854Z"));
+        paymentResponse.setDescription("Application to register a Companies House authorised agent");
+
+        // Set links
+        PaymentLinks links = new PaymentLinks();
+        links.setJourney("https://payments.local.org/payments/Bq286888xzSfXk/pay");
+        links.setResource(RESOURCE_LINK);
+        links.setSelf("payments/Bq286888xzSfXk");
+        paymentResponse.setLinks(links);
+
+        paymentResponse.setPaymentMethod("credit-card");
+        paymentResponse.setReference("Register_ACSP_174365-968117-586962");
+        paymentResponse.setStatus("paid");
+        paymentResponse.setEtag("34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679");
+        paymentResponse.setKind("payment-session#payment-session");
+
         return getAPIResponse(paymentResponse);
     }
 
-    public static PaymentPatchRequestApi getPaymentPatchRequestApi() throws JsonProcessingException, ParseException {
-        String json = "{\"completed_at\":\"2025-09-24T06:44:32.354Z\",\"status\":\"paid\",\"reference\":\"Register_ACSP_174365-968117-586962\"}";
-        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        JsonNode rootNode = objectMapper.readTree(json);
-        String status = rootNode.get("status").asText();
-        String reference = rootNode.get("reference").asText();
-        String paidAt = rootNode.get("completed_at").asText();
+
+    public static PaymentPatchRequestApi getPaymentPatchRequestApi() throws ParseException {
         PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();
-        paymentPatchRequestApi.setPaymentReference(reference);
-        paymentPatchRequestApi.setStatus(status);
+
+        // Set values directly using setters
+        paymentPatchRequestApi.setStatus("paid");
+        paymentPatchRequestApi.setPaymentReference("Register_ACSP_174365-968117-586962");
+        // Parse the date and set it
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        Date date = formatter.parse(paidAt);
+        Date date = formatter.parse("2025-09-24T06:44:32.354Z");
         paymentPatchRequestApi.setPaidAt(date);
+
         return paymentPatchRequestApi;
     }
 
@@ -58,43 +78,50 @@ public class TestUtils {
         return paymentProcessed;
     }
 
-    public static ApiResponse<PaymentResponse> getPaymentResponseRefund() throws JsonProcessingException {
-        String json = "{"
-                + "\"amount\":\"55.00\","
-                + "\"completed_at\":\"2025-09-24T06:44:32.354Z\","
-                + "\"created_at\":\"2025-09-24T06:44:27.854Z\","
-                + "\"description\":\"Application to register a Companies House authorised agent\","
-                + "\"links\":{"
-                + "\"journey\":\"https://payments.local.org/payments/Bq286888xzSfXk/pay\","
-                + "\"resource\":\"" + RESOURCE_LINK + "\","
-                + "\"self\":\"payments/Bq286888xzSfXk\""
-                + "},"
-                + "\"payment_method\":\"credit-card\","
-                + "\"reference\":\"Register_ACSP_174365-968117-586962\","
-                + "\"status\":\"paid\","
-                + "\"etag\":\"34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679\","
-                + "\"kind\":\"payment-session#payment-session\","
-                + "\"refunds\":["
-                + "{"
-                + "\"refund_id\":\"R123\","
-                + "\"created_at\":\"2025-09-23T10:15:30.000Z\","
-                + "\"amount\":1000,"
-                + "\"status\":\"approved\","
-                + "\"external_refund_url\":\"https://example.com/refund/R123\","
-                + "\"refund_reference\":\"REF123\""
-                + "},"
-                + "{"
-                + "\"refund_id\":\"R124\","
-                + "\"created_at\":\"2025-09-22T09:10:25.000Z\","
-                + "\"amount\":500,"
-                + "\"status\":\"pending\","
-                + "\"external_refund_url\":\"https://example.com/refund/R124\","
-                + "\"refund_reference\":\"REF124\""
-                + "}"
-                + "]"
-                + "}";
-        ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-        PaymentResponse paymentResponse = objectMapper.readValue(json, PaymentResponse.class);
+    public static ApiResponse<PaymentResponse> getPaymentResponseRefund() throws ParseException {
+        PaymentResponse paymentResponse = new PaymentResponse();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        // Set values using setters
+        paymentResponse.setAmount("55.00");
+        paymentResponse.setCompletedAt(formatter.parse("2025-09-24T06:44:32.354Z"));
+        paymentResponse.setCreatedAt(formatter.parse("2025-09-24T06:44:27.854Z"));
+        paymentResponse.setDescription("Application to register a Companies House authorised agent");
+
+        // Set links
+        PaymentLinks links = new PaymentLinks();
+        links.setJourney("https://payments.local.org/payments/Bq286888xzSfXk/pay");
+        links.setResource(RESOURCE_LINK);
+        links.setSelf("payments/Bq286888xzSfXk");
+        paymentResponse.setLinks(links);
+
+        paymentResponse.setPaymentMethod("credit-card");
+        paymentResponse.setReference("Register_ACSP_174365-968117-586962");
+        paymentResponse.setStatus("paid");
+        paymentResponse.setEtag("34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679");
+        paymentResponse.setKind("payment-session#payment-session");
+
+        // Set refunds
+        List<RefundModel> refunds = new ArrayList<>();
+        RefundModel refund1 = new RefundModel();
+        refund1.setRefundId("R123");
+        refund1.setCreatedAt(formatter.parse("2025-09-23T10:15:30.000Z"));
+        refund1.setAmount(1000);
+        refund1.setStatus("approved");
+        refund1.setExternalRefundUrl("https://example.com/refund/R123");
+        refund1.setRefundReference("REF123");
+
+        RefundModel refund2 = new RefundModel();
+        refund2.setRefundId("R124");
+        refund2.setCreatedAt(formatter.parse("2025-09-22T09:10:25.000Z"));
+        refund2.setAmount(500);
+        refund2.setStatus("pending");
+        refund2.setExternalRefundUrl("https://example.com/refund/R124");
+        refund2.setRefundReference("REF124");
+
+        refunds.add(refund1);
+        refunds.add(refund2);
+        paymentResponse.setRefunds(refunds);
+
         return getAPIResponse(paymentResponse);
     }
 }

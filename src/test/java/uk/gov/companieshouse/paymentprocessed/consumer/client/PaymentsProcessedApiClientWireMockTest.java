@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.Assertions;
@@ -37,7 +36,7 @@ class PaymentsProcessedApiClientWireMockTest {
             null, null, null);
 
     @Test
-    void shouldHandleSuccessfulPatchRequest() throws ParseException, JsonProcessingException {
+    void shouldHandleSuccessfulPatchRequest() throws ParseException {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -53,7 +52,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleBadRequest() throws ParseException, JsonProcessingException {
+    void shouldHandleBadRequest() throws ParseException {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -70,7 +69,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleConflict() throws ParseException, JsonProcessingException {
+    void shouldHandleConflict() throws ParseException {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -87,7 +86,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleServerError() throws ParseException, JsonProcessingException {
+    void shouldHandleServerError() throws ParseException {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -104,7 +103,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldThrowTimeoutExceptionUsingWireMock() throws ParseException, JsonProcessingException {
+    void shouldThrowTimeoutExceptionUsingWireMock() throws ParseException {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
         // Simulate a delayed response

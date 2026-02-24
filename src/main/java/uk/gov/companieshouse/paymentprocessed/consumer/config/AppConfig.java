@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 @Configuration
 public class AppConfig {
 
-    @Value("${api.api-key}")
+    @Value("${internal.api-key}")
     private String chsInternalApiKey;
 
     @Value("${timeout.milliseconds}")

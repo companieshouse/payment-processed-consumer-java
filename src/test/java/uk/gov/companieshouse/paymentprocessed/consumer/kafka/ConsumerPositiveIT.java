@@ -11,7 +11,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -51,6 +52,8 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.ge
 @WireMockTest(httpPort = 8889)
 class ConsumerPositiveIT extends AbstractKafkaIT {
 
+    private static final String PAYMENT_RESOURCE_PARAMS = "/paymentResource?subNumber=000-016&formType=1123";
+    private static final String BASKET_CHECKOUT = "/basket/checkouts/ORD-905317-719212/payment";
     @Autowired
     private KafkaConsumer<String, byte[]> testConsumer;
     @Autowired
@@ -69,8 +72,9 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         testConsumer.poll(Duration.ofMillis(1000));
     }
 
-    @Test
-    void shouldConsumePaymentProcessMessageSuccessfully() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {PAYMENT_RESOURCE_PARAMS, RESOURCE_LINK, BASKET_CHECKOUT})
+    void shouldConsumePaymentProcessMessageSuccessfully(String resource) throws Exception {
 
         // given
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -79,7 +83,7 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         writer.write(getPaymentProcessed(), encoder);
         ApiResponse<PaymentResponse> apiResponse = TestUtils.getPaymentResponse();
         ObjectMapper objectMapper = TestUtils.getObjectMapper();
-        apiResponse.getData().getLinks().setResource("http://localhost" + ":8889" + RESOURCE_LINK);
+        apiResponse.getData().getLinks().setResource("http://localhost" + ":8889" + resource);
         String apiResponseJson = objectMapper.writeValueAsString(apiResponse.getData());
         stubFor(get(GET_URI)
                 .willReturn(aResponse()
@@ -103,10 +107,11 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         assertThat(KafkaUtils.noOfRecordsForTopic(consumerRecords, ERROR_TOPIC)).isZero();
         assertThat(KafkaUtils.noOfRecordsForTopic(consumerRecords, INVALID_TOPIC)).isZero();
         verify(getRequestedFor(urlEqualTo(GET_URI)));
-        verify(patchRequestedFor(urlEqualTo(RESOURCE_LINK)));
+        verify(patchRequestedFor(urlEqualTo(resource)));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {PAYMENT_RESOURCE_PARAMS, RESOURCE_LINK, BASKET_CHECKOUT})
     void shouldConsumePaymentProcessMessageRefundSuccessfully() throws Exception {
 
         // given

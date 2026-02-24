@@ -211,13 +211,12 @@ public class PaymentsProcessedApiClientTest {
         when(internalApiClientFactory.get()).thenReturn(internalApiClient);
         when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        Class<JsonProcessingException> exceptionClass = JsonProcessingException.class;
         when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
         when(paymentGetPaymentSession.execute()).thenReturn(getPaymentResponse());
         when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
-        paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        verify(responseHandler).handle(anyString(), anyString(), any(exceptionClass));
-        verify(privatePaymentResourceHandler, times(1)).getPaymentSession("/payments/" + RESOURCE_ID);
+        Optional<PaymentResponse> response = paymentsProcessedApiClient.getPayment(RESOURCE_ID);
+        // Assert
+        Assertions.assertTrue(response.isPresent());
     }
 
     @Test
