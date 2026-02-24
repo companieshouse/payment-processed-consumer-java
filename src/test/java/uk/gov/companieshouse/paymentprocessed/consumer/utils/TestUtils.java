@@ -20,13 +20,11 @@ public class TestUtils {
 
     public static final String RESOURCE_LINK = "/transactions/174365-968117-586962/payment";
 
-    public static final String BASE_URL = "http://api-payments.chs.local";
-
-    public static final String GET_URI = "/payments/P9hl8PrKRBk1Zmc";
+    public static final String GET_URI = "/payments/P9hl8PWQQrKRBk1Zmc";
 
 
     public static ApiResponse<PaymentResponse> getPaymentResponse() throws JsonProcessingException {
-        String json = "{\"amount\":\"55.00\",\"completed_at\":\"2025-09-24T06:44:32.354Z\",\"created_at\":\"2025-09-24T06:44:27.854Z\",\"description\":\"Application to register a Companies House authorised agent\",\"links\":{\"journey\":\"https://payments.cidev.aws.chdev.org/payments/Bq286FEk6xzSfXk/pay\",\"resource\":\"" + RESOURCE_LINK + "\",\"self\":\"payments/Bq286FEk6xzSfXk\"},\"payment_method\":\"credit-card\",\"reference\":\"Register_ACSP_174365-968117-586962\",\"status\":\"paid\",\"etag\":\"34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679\",\"kind\":\"payment-session#payment-session\"}}";
+        String json = "{\"amount\":\"55.00\",\"completed_at\":\"2025-09-24T06:44:32.354Z\",\"created_at\":\"2025-09-24T06:44:27.854Z\",\"description\":\"Application to register a Companies House authorised agent\",\"links\":{\"journey\":\"https://payments.local.org/payments/Bq286888xzSfXk/pay\",\"resource\":\"" + RESOURCE_LINK + "\",\"self\":\"payments/Bq286888xzSfXk\"},\"payment_method\":\"credit-card\",\"reference\":\"Register_ACSP_174365-968117-586962\",\"status\":\"paid\",\"etag\":\"34e92e90a981a9686b45a56204e98d7d1fef86bbb446bf0c2cf5c679\",\"kind\":\"payment-session#payment-session\"}}";
         ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
         PaymentResponse paymentResponse = objectMapper.readValue(json, PaymentResponse.class);
         return getAPIResponse(paymentResponse);
@@ -56,7 +54,7 @@ public class TestUtils {
     public static payment_processed getPaymentProcessed() {
         payment_processed paymentProcessed = new payment_processed();
         paymentProcessed.setAttempt(1);
-        paymentProcessed.setPaymentResourceId("P9hl8PrKRBk1Zmc");
+        paymentProcessed.setPaymentResourceId("P9hl8PWQQrKRBk1Zmc");
         return paymentProcessed;
     }
 
@@ -67,9 +65,9 @@ public class TestUtils {
                 + "\"created_at\":\"2025-09-24T06:44:27.854Z\","
                 + "\"description\":\"Application to register a Companies House authorised agent\","
                 + "\"links\":{"
-                + "\"journey\":\"https://payments.cidev.aws.chdev.org/payments/Bq286FEk6xzSfXk/pay\","
+                + "\"journey\":\"https://payments.local.org/payments/Bq286888xzSfXk/pay\","
                 + "\"resource\":\"" + RESOURCE_LINK + "\","
-                + "\"self\":\"payments/Bq286FEk6xzSfXk\""
+                + "\"self\":\"payments/Bq286888xzSfXk\""
                 + "},"
                 + "\"payment_method\":\"credit-card\","
                 + "\"reference\":\"Register_ACSP_174365-968117-586962\","

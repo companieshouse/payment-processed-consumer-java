@@ -3,6 +3,7 @@ package uk.gov.companieshouse.paymentprocessed.consumer.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.logging.Logger;
@@ -43,6 +44,22 @@ public class ResponseHandler {
             throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
         }
     }
+
+    public void handle(String apiCall, String resourceUri, WebClientResponseException ex) {
+        final int statusCode = ex.getStatusCode().value();
+        if (HttpStatus.BAD_REQUEST.value() == statusCode || HttpStatus.CONFLICT.value() == statusCode) {
+            LOGGER.error(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
+                    ex, DataMapHolder.getLogMap());
+            throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+        } else {
+            LOGGER.info(
+                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode().value(),
+                            Arrays.toString(ex.getStackTrace())),
+                    DataMapHolder.getLogMap());
+            throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+        }
+    }
+
 
     public void handle(String apiCall, String resourceUri, JsonProcessingException ex) {
         LOGGER.error(String.format(JSON_PARSE_EXCEPTION_MESSAGE, apiCall, resourceUri),

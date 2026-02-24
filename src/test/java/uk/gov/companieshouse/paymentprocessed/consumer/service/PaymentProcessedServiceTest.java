@@ -1,15 +1,15 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.payment.PaymentLinks;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
-import uk.gov.companieshouse.api.model.payment.Refund;
+import uk.gov.companieshouse.api.model.payment.RefundModel;
 import uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClient;
 import uk.gov.companieshouse.paymentprocessed.consumer.factory.PaymentPatchRequestApiFactoryImpl;
 
@@ -24,6 +24,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class PaymentProcessedServiceTest {
 
     @Mock
@@ -35,10 +36,6 @@ class PaymentProcessedServiceTest {
     @InjectMocks
     private PaymentProcessedService paymentProcessedService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void shouldProcessMessageSuccessfully() {
@@ -73,7 +70,7 @@ class PaymentProcessedServiceTest {
         when(paymentProcessed.getPaymentResourceId()).thenReturn("payment123");
         when(paymentProcessed.getRefundId()).thenReturn("refund123");
 
-        Refund refund = mock(Refund.class);
+        RefundModel refund = mock(RefundModel.class);
         when(refund.getRefundId()).thenReturn("refund123");
         when(refund.getStatus()).thenReturn("approved");
         when(refund.getCreatedAt()).thenReturn(new Date());

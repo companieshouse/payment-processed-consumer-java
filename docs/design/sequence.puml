@@ -1,0 +1,28 @@
+@startuml
+actor Kafka
+participant "Service" as S
+participant "Payments API" as API
+
+Kafka -> S: New message (paymentProcessedConsumer)
+S -> S: Unmarshal message (Avro -> paymentProcessedConsumer)
+alt Unmarshal error
+    S -> S: Log error
+    S -> Kafka: Send to error topic
+else Success
+    S -> API: GetPayment (session details)
+    alt GetPayment error
+        S -> S: Log error
+        S -> Kafka: Send to retry topic
+    else Success
+        S -> S: IsRefund?
+        alt  Refundable
+            S -> API: Send Refund Patch request
+        else Non Refund Type Payment
+            S -> API: Send Patch request
+            alt PatchPaymentDetails error
+                S -> S: Log error
+                S -> Kafka: Send to retry topic
+        end
+    end
+end
+@enduml

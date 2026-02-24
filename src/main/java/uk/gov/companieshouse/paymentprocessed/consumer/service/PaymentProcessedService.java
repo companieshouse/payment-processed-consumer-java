@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
-import uk.gov.companieshouse.api.model.payment.Refund;
+import uk.gov.companieshouse.api.model.payment.RefundModel;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClient;
@@ -43,9 +43,9 @@ public class PaymentProcessedService {
         if (paymentProcessed.getRefundId() != null && paymentResponse.getRefunds() != null) {
             LOGGER.info("Refund ID present in message, for PaymentResourceId" + paymentResourceId);
             paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(paymentProcessed.getRefundId(), paymentProcessed.getPaymentResourceId());
-            Optional<Refund> refundOptional = paymentResponse.getRefunds().stream().filter(refund -> refund.getRefundId().equals(paymentProcessed.getRefundId())).findFirst();
+            Optional<RefundModel> refundOptional = paymentResponse.getRefunds().stream().filter(refund -> refund.getRefundId().equals(paymentProcessed.getRefundId())).findFirst();
             if (refundOptional.isPresent()) {
-                Refund refund = refundOptional.get();
+                RefundModel refund = refundOptional.get();
                 paymentPatchRequestApi.setRefundReference(refund.getRefundReference());
                 paymentPatchRequestApi.setRefundStatus(refund.getStatus());
                 paymentPatchRequestApi.setRefundProcessedAt(refund.getCreatedAt());

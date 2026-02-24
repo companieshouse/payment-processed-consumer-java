@@ -26,7 +26,7 @@ public class ResponseHandlerTest {
 
     private ApiErrorResponseException apiErrorResponseException;
 
-    public static final String RESOURCE_ID = "P9hl8PrKRBk1Zmc";
+    public static final String RESOURCE_ID = "P9hl8PWQQrKRBk1Zmc";
 
     private static final String GET_PAYMENT_CALL = "Payments Consumer API GET Payment";
     private static final String PATCH_PAYMENT_CALL = "Payments Consumer API Patch Payment";
