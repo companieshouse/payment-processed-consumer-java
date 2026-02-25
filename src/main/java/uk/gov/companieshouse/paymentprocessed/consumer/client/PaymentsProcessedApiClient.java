@@ -93,13 +93,17 @@ public class PaymentsProcessedApiClient {
     public void patchPayment(String paymentsPatchUri, PaymentPatchRequestApi paymentPatchRequestApi) {
         try {
             loggingRequestValue(paymentsPatchUri, paymentPatchRequestApi);
+            String requestId = DataMapHolder.getRequestId();
             webClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
                     .bodyValue(paymentPatchRequestApi)
-                    .retrieve()
+                    .headers(headers -> {
+                        if (requestId != null && !requestId.trim().isEmpty()) {
+                            headers.add("x-request-id", requestId);
+                        }
+                    }).retrieve()
                     .toBodilessEntity()
-                    .doOnSuccess(response -> LOGGER.info(String.format("Successfully called PATCH payment for resource URI: %s with status code: %s", paymentsPatchUri, response.getStatusCode()), DataMapHolder.getLogMap()))
                     .block();
         } catch (WebClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
