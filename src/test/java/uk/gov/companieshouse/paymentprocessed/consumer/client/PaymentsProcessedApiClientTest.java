@@ -7,8 +7,10 @@ import com.google.api.client.http.HttpResponseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,15 +30,19 @@ import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
+import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
+import java.text.ParseException;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,11 +99,11 @@ public class PaymentsProcessedApiClientTest {
         // Mocking the WebClient chain
         when(webClient.patch()).thenReturn(requestBodyUriSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
         when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
         when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
-        when(responseEntityMono.doOnSuccess(any())).thenReturn(responseEntityMono);
 
         paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
 
@@ -134,6 +140,7 @@ public class PaymentsProcessedApiClientTest {
         // Mocking the WebClient chain to simulate an error response
         when(webClient.patch()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
         when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
@@ -167,6 +174,7 @@ public class PaymentsProcessedApiClientTest {
         when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
         when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.toBodilessEntity()).thenThrow(new WebClientResponseException(
                 HttpStatus.BAD_REQUEST.value(),
@@ -277,6 +285,158 @@ public class PaymentsProcessedApiClientTest {
         );
     }
 
+    @Test
+    void shouldAddXRequestIdHeaderWhenRequestIdIsValid() throws ParseException {
+        // Arrange
+        String validRequestId = "12345";
+        String paymentsPatchUri = URL;
+        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        Mono<ResponseEntity<Void>> responseEntityMono = mock(Mono.class);
+
+        // Mocking the WebClient chain to simulate an error response
+        when(webClient.patch()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+
+        // Mock DataMapHolder to return a valid requestId
+        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
+            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(validRequestId);
+
+            // Act
+            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+
+            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
+                    ArgumentCaptor.forClass(java.util.function.Consumer.class);
+            verify(requestHeadersSpec).headers(captor.capture());
+
+            // Verify the captured lambda
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            captor.getValue().accept(headers);
+            Assertions.assertTrue(headers.containsKey("x-request-id"));
+            Assertions.assertEquals(validRequestId, headers.getFirst("x-request-id"));
+
+        }
+    }
+
+    @Test
+    void shouldAddXRequestIdHeaderWhenRequestIdIsNull() throws ParseException {
+        // Arrange
+        String validRequestId = null;
+        String paymentsPatchUri = URL;
+        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        Mono<ResponseEntity<Void>> responseEntityMono = mock(Mono.class);
+
+        // Mocking the WebClient chain to simulate an error response
+        when(webClient.patch()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+
+        // Mock DataMapHolder to return a valid requestId
+        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
+            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(validRequestId);
+
+            // Act
+            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+
+            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
+                    ArgumentCaptor.forClass(java.util.function.Consumer.class);
+            verify(requestHeadersSpec).headers(captor.capture());
+
+            // Verify the captured lambda
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            captor.getValue().accept(headers);
+            Assertions.assertFalse(headers.containsKey("x-request-id"));
+            Assertions.assertEquals(validRequestId, headers.getFirst("x-request-id"));
+
+        }
+    }
+
+    @Test
+    void shouldAddXRequestIdHeaderWhenRequestIdIsBlank() throws ParseException {
+        // Arrange
+        String validRequestId = "     ";
+        String paymentsPatchUri = URL;
+        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        Mono<ResponseEntity<Void>> responseEntityMono = mock(Mono.class);
+
+        // Mocking the WebClient chain to simulate an error response
+        when(webClient.patch()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+
+        // Mock DataMapHolder to return a valid requestId
+        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
+            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(validRequestId);
+
+            // Act
+            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+
+            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
+                    ArgumentCaptor.forClass(java.util.function.Consumer.class);
+            verify(requestHeadersSpec).headers(captor.capture());
+
+            // Verify the captured lambda
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            captor.getValue().accept(headers);
+            Assertions.assertFalse(headers.containsKey("x-request-id"));
+            Assertions.assertEquals(null, headers.getFirst("x-request-id"));
+
+        }
+    }
+
+    @Test
+    void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws JsonProcessingException, ParseException {
+        // Arrange
+        String paymentsPatchUri = URL;
+        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        JsonProcessingException jsonProcessingException = mock(JsonProcessingException.class);
+        WebClient.RequestBodyUriSpec requestBodyUriSpec = mock(WebClient.RequestBodyUriSpec.class);
+        WebClient.RequestBodySpec requestBodySpec = mock(WebClient.RequestBodySpec.class);
+        WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
+        WebClient.RequestHeadersSpec requestHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
+        Mono<ResponseEntity<Void>> responseEntityMono = mock(Mono.class);
+        // Mocking the WebClient chain
+        when(webClient.patch()).thenReturn(requestBodyUriSpec);
+        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
+        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
+        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+
+        // Mocking the ObjectMapper to throw JsonProcessingException
+        when(objectMapper.writeValueAsString(paymentPatchRequestApi)).thenThrow(jsonProcessingException);
+
+        // Act
+        paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+
+        // Assert
+        verify(responseHandler).handle(any(), any(), any(JsonProcessingException.class));
+    }
 
     public static <T> ApiResponse<T> getAPIResponse(T data) {
         return new ApiResponse<>(HttpStatus.OK.value(), null, data);
