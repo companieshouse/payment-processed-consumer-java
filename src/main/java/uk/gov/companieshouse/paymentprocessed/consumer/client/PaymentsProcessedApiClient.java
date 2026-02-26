@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -94,7 +95,7 @@ public class PaymentsProcessedApiClient {
         try {
             loggingRequestValue(paymentsPatchUri, paymentPatchRequestApi);
             String requestId = DataMapHolder.getRequestId();
-            webClient.patch()
+            ResponseEntity<Void> response = webClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
                     .bodyValue(paymentPatchRequestApi)
@@ -105,6 +106,8 @@ public class PaymentsProcessedApiClient {
                     }).retrieve()
                     .toBodilessEntity()
                     .block();
+            if (response != null)
+                LOGGER.info(String.format("Successfully called %s for resource ID: %s and status code: %s", PATCH_PAYMENT_CALL, paymentPatchRequestApi, response.getStatusCode()), DataMapHolder.getLogMap());
         } catch (WebClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {

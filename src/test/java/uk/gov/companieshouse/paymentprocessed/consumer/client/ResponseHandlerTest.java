@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class ResponseHandlerTest {
+class ResponseHandlerTest {
 
     private final ResponseHandler responseHandler = new ResponseHandler();
 
