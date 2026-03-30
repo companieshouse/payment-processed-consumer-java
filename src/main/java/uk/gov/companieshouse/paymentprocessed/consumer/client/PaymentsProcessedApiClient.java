@@ -41,7 +41,7 @@ public class PaymentsProcessedApiClient {
     private final Boolean skipGoneResource;
 
     PaymentsProcessedApiClient(Supplier<InternalApiClient> internalApiClientFactory, ResponseHandler responseHandler, ObjectMapper objectMapper, WebClient webClient, @Value("${payments.api.url}")
-    String paymentsApiUrl,
+                               String paymentsApiUrl,
                                @Value("${skip.gone.resource.id}")
                                String skipGoneResourceId,
                                @Value("${skip.gone.resource}")
@@ -68,7 +68,7 @@ public class PaymentsProcessedApiClient {
                     .getData());
             loggingPaymentResponse(resourceID, response);
         } catch (ApiErrorResponseException ex) {
-            LOGGER.error(String.format("Unable to obtain response from %s for resource ID: %s", GET_PAYMENT_CALL, resourceID));
+            LOGGER.error(String.format("Unable to obtain response from %s and exception message %s", GET_PAYMENT_CALL, ex.getMessage()), DataMapHolder.getLogMap());
             if (ex.getStatusCode() == HttpStatus.GONE.value() && checkSkipGoneResource(resourceID, skipGoneResource)) {
                 return Optional.empty();
             }

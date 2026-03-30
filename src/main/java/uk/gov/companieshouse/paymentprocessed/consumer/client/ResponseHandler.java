@@ -20,7 +20,7 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESP
 public class ResponseHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NAMESPACE);
-    private static final String API_INFO_RESPONSE_MESSAGE = "%s failed, resource URI: %s, status code: %d. %s";
+    private static final String API_INFO_RESPONSE_MESSAGE = "%s failed, resource URI: %s, status code: %d. exception message : %s and stack trace : %s";
     private static final String API_ERROR_RESPONSE_MESSAGE = "%s failed, resource URI: %s, status code: %d.";
     private static final String URI_VALIDATION_EXCEPTION_MESSAGE = "%s failed due to invalid URI";
     private static final String JSON_PARSE_EXCEPTION_MESSAGE = "%s failed due  to unable to parse response for resource ID: %s";
@@ -38,7 +38,7 @@ public class ResponseHandler {
             throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
         } else {
             LOGGER.info(
-                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode(),
+                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode(), ex.getMessage(),
                             Arrays.toString(ex.getStackTrace())),
                     DataMapHolder.getLogMap());
             throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
@@ -53,7 +53,7 @@ public class ResponseHandler {
             throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
         } else {
             LOGGER.info(
-                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode().value(),
+                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode().value(), ex.getMessage(),
                             Arrays.toString(ex.getStackTrace())),
                     DataMapHolder.getLogMap());
             throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);

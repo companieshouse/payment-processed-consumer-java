@@ -33,7 +33,6 @@ import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableExcept
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
-import java.text.ParseException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -128,7 +127,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldHandleRetryableExceptionWhenSendingPatchRequest() throws Exception {
+    void shouldHandleRetryableExceptionWhenSendingPatchRequest() {
         // Arrange
         String paymentsPatchUri = URL;
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
@@ -160,7 +159,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldHandleNonRetryableExceptionWhenSendingPatchRequest() throws Exception {
+    void shouldHandleNonRetryableExceptionWhenSendingPatchRequest() {
         // Arrange
         String paymentsPatchUri = URL;
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
@@ -286,7 +285,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldAddXRequestIdHeaderWhenRequestIdIsValid() throws ParseException {
+    void shouldAddXRequestIdHeaderWhenRequestIdIsValid() {
         // Arrange
         String validRequestId = "12345";
         String paymentsPatchUri = URL;
@@ -327,7 +326,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldAddXRequestIdHeaderWhenRequestIdIsNull() throws ParseException {
+    void shouldAddXRequestIdHeaderWhenRequestIdIsNull() {
         // Arrange
         String validRequestId = null;
         String paymentsPatchUri = URL;
@@ -368,7 +367,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldAddXRequestIdHeaderWhenRequestIdIsBlank() throws ParseException {
+    void shouldAddXRequestIdHeaderWhenRequestIdIsBlank() {
         // Arrange
         String validRequestId = "     ";
         String paymentsPatchUri = URL;
@@ -409,7 +408,7 @@ public class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws JsonProcessingException, ParseException {
+    void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws JsonProcessingException {
         // Arrange
         String paymentsPatchUri = URL;
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();

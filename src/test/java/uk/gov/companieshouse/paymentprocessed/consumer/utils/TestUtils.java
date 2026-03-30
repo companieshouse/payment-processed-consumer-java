@@ -10,10 +10,8 @@ import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.api.model.payment.RefundModel;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
@@ -25,14 +23,13 @@ public class TestUtils {
     public static final String GET_URI = "/payments/P9hl8PWQQrKRBk1Zmc";
 
 
-    public static ApiResponse<PaymentResponse> getPaymentResponse() throws ParseException {
+    public static ApiResponse<PaymentResponse> getPaymentResponse() {
         PaymentResponse paymentResponse = new PaymentResponse();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
         // Set values directly using setters
         paymentResponse.setAmount("55.00");
-        paymentResponse.setCompletedAt(formatter.parse("2025-09-24T06:44:32.354Z"));
-        paymentResponse.setCreatedAt(formatter.parse("2025-09-24T06:44:27.854Z"));
+        paymentResponse.setCompletedAt(Instant.parse("2026-02-05T15:10:35.000+00:00"));
+        paymentResponse.setCreatedAt(Instant.parse("2026-02-05T15:10:35.1+00:00"));
         paymentResponse.setDescription("Application to register a Companies House authorised agent");
 
         // Set links
@@ -52,15 +49,14 @@ public class TestUtils {
     }
 
 
-    public static PaymentPatchRequestApi getPaymentPatchRequestApi() throws ParseException {
+    public static PaymentPatchRequestApi getPaymentPatchRequestApi() {
         PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();
 
         // Set values directly using setters
         paymentPatchRequestApi.setStatus("paid");
         paymentPatchRequestApi.setPaymentReference("Register_ACSP_174365-968117-586962");
         // Parse the date and set it
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        Date date = formatter.parse("2025-09-24T06:44:32.354Z");
+        Instant date = Instant.parse("2025-09-24T06:44:32.354Z");
         paymentPatchRequestApi.setPaidAt(date);
 
         return paymentPatchRequestApi;
@@ -78,13 +74,12 @@ public class TestUtils {
         return paymentProcessed;
     }
 
-    public static ApiResponse<PaymentResponse> getPaymentResponseRefund() throws ParseException {
+    public static ApiResponse<PaymentResponse> getPaymentResponseRefund() {
         PaymentResponse paymentResponse = new PaymentResponse();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         // Set values using setters
         paymentResponse.setAmount("55.00");
-        paymentResponse.setCompletedAt(formatter.parse("2025-09-24T06:44:32.354Z"));
-        paymentResponse.setCreatedAt(formatter.parse("2025-09-24T06:44:27.854Z"));
+        paymentResponse.setCompletedAt(Instant.parse("2026-02-05T15:10:35.12+00:00"));
+        paymentResponse.setCreatedAt(Instant.parse("2026-02-05T15:10:35.00+00:00"));
         paymentResponse.setDescription("Application to register a Companies House authorised agent");
 
         // Set links
@@ -104,7 +99,7 @@ public class TestUtils {
         List<RefundModel> refunds = new ArrayList<>();
         RefundModel refund1 = new RefundModel();
         refund1.setRefundId("R123");
-        refund1.setCreatedAt(formatter.parse("2025-09-23T10:15:30.000Z"));
+        refund1.setCreatedAt(Instant.parse("2025-09-23T10:15:30.000Z"));
         refund1.setAmount(1000);
         refund1.setStatus("approved");
         refund1.setExternalRefundUrl("https://example.com/refund/R123");
@@ -112,7 +107,7 @@ public class TestUtils {
 
         RefundModel refund2 = new RefundModel();
         refund2.setRefundId("R124");
-        refund2.setCreatedAt(formatter.parse("2025-09-22T09:10:25.000Z"));
+        refund2.setCreatedAt(Instant.parse("2025-09-22T09:10:25.000Z"));
         refund2.setAmount(500);
         refund2.setStatus("pending");
         refund2.setExternalRefundUrl("https://example.com/refund/R124");
