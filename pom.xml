@@ -1,64 +1,45 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>uk.gov.companieshouse</groupId>
-        <artifactId>companies-house-parent</artifactId>
-        <version>2.1.13</version>
-        <relativePath/>
-    </parent>
-
+    <artifactId>payment-processed-consumer-java</artifactId>
     <name>payment-processed-consumer-java</name>
+    <version>unversioned</version>
     <description>This service will consume from the payment-processed kafka topic. Messages
         consumed will be processed
     </description>
-
-    <artifactId>payment-processed-consumer-java</artifactId>
-    <version>unversioned</version>
-    <packaging>jar</packaging>
-
+    <parent>
+        <groupId>uk.gov.companieshouse</groupId>
+        <artifactId>companies-house-parent</artifactId>
+        <version>2.1.14</version>
+        <relativePath/>
+    </parent>
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <spring.boot.version>3.5.11</spring.boot.version>
-        <structured-logging.version>3.0.51</structured-logging.version>
+        <kafka-models.version>3.0.30</kafka-models.version>
         <private-api-sdk-java.version>4.0.491</private-api-sdk-java.version>
-        <kafka-models.version>3.0.29</kafka-models.version>
-        <test-containers.version>1.21.4</test-containers.version>
-        <skip.integration.tests>false</skip.integration.tests>
-        <mockito-core.version>5.21.0</mockito-core.version>
-        <mockito-junit-jupiter.version>5.21.0</mockito-junit-jupiter.version>
-        <jib.version>3.5.1</jib.version>
-        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
-        <wiremock.version>3.13.2</wiremock.version>
-        <skip.unit.tests>false</skip.unit.tests>
-        <skip.integration.tests>false</skip.integration.tests>
-
-        <!--sonar configuration-->
-        <sonar.projectName>payment-processed-consumer-java</sonar.projectName>
-        <sonar.projectKey>uk.gov.companieshouse:payment-processed-consumer-java</sonar.projectKey>
-        <sonar.coverage.jacoco.xmlReportPaths>
-            ${project.build.directory}/site/jacoco/jacoco.xml
-        </sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.jacoco.reports>${project.build.directory}/site</sonar.jacoco.reports>
-        <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
-        <sonar.login/>
-        <sonar.password/>
-        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-        <spring-core.version>6.2.11</spring-core.version>
-        <commons-lang3.version>3.20.0</commons-lang3.version>
-        <assertj-core.version>3.27.7</assertj-core.version>
-        <avro.version>1.12.1</avro.version>
+        <structured-logging.version>3.0.52</structured-logging.version>
+        <aspectjweaver-version>1.9.25.1</aspectjweaver-version>
+        <avro-version>1.12.1</avro-version>
+        <commons-lang3-version>3.20.0</commons-lang3-version>
+        <kafka-clients-version>3.9.1</kafka-clients-version>
         <log4j-api.version>2.25.3</log4j-api.version>
-        <okhttp.version>5.3.2</okhttp.version>
-        <reactor-netty-http.version>1.3.3</reactor-netty-http.version>
+        <spring.boot.version>4.0.5</spring.boot.version>
+        <wiremock.version>3.13.2</wiremock.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+        <java.version>21</java.version>
+        <jib-maven-plugin.version>3.5.1</jib-maven-plugin.version>
+        <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <log4j-api.version>2.25.3</log4j-api.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <assertj-core.version>3.27.7</assertj-core.version>
+        <reactor-netty-http.version>1.3.4</reactor-netty-http.version>
         <netty-all.version>4.2.10.Final</netty-all.version>
-        <kotlin-stdlib.version>2.2.21</kotlin-stdlib.version>
+        <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
     </properties>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -68,55 +49,79 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <!-- Overrirde from okhttp  for CVE-2020-29582-->
+            <!-- start fix versions for vulnerable transitive dependencies -->
+            <!-- CVE-2025-33042 -->
             <dependency>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-stdlib</artifactId>
-                <version>${kotlin-stdlib.version}</version>
-                <scope>compile</scope>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>1.12.1</version>
             </dependency>
+            <!-- GHSA-72hv-8253-57qq -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>2.21.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.21</version>
+            </dependency>
+            <!-- GHSA-72hv-8253-57qq -->
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <!-- CVE-2026-29062 -->
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <!-- end fix versions for vulnerable transitive dependencies -->
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
-        </dependency>
+        <!-- external -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
             <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- companies house -->
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>kafka-models</artifactId>
+            <version>${kafka-models.version}</version>
+            <exclusions>
+                <!-- CVE-2025-66566 -->
                 <exclusion>
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
                 </exclusion>
+                <!-- CVE-2026-1605 -->
                 <exclusion>
-                    <groupId>org.bitbucket.b_c</groupId>
-                    <artifactId>jose4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>uk.gov.companieshouse</groupId>
-            <artifactId>structured-logging</artifactId>
-            <version>${structured-logging.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.msgpack</groupId>
-                    <artifactId>msgpack-core</artifactId>
+                    <groupId>org.eclipse.jetty.ee10</groupId>
+                    <artifactId>jetty-ee10-webapp</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -124,9 +129,8 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>private-api-sdk-java</artifactId>
             <version>${private-api-sdk-java.version}</version>
-            <!-- The following  exclusions prevents vulnerability CVE-2025-68161 in the private-api-sdk-java.version 4.0.435-->
-            <!-- These should be able to be removed when this is updated -->
             <exclusions>
+                <!-- not required, use logback instead -->
                 <exclusion>
                     <groupId>org.apache.logging.log4j</groupId>
                     <artifactId>log4j-api</artifactId>
@@ -135,94 +139,58 @@
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
-            <artifactId>kafka-models</artifactId>
-            <version>${kafka-models.version}</version>
-            <!-- CVE-2025-33042: Exclusions added to mitigate the vulnerability -->
+            <artifactId>structured-logging</artifactId>
+            <version>${structured-logging.version}</version>
             <exclusions>
+                <!-- not required, use logback instead -->
                 <exclusion>
-                    <groupId>org.apache.avro</groupId>
-                    <artifactId>avro</artifactId>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <!-- CVE-2026-24400: Exclusions added to mitigate the vulnerability -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.assertj</groupId>
-                    <artifactId>assertj-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka-test</artifactId>
             <scope>test</scope>
             <exclusions>
+                <!-- CVE-2025-66566 -->
                 <exclusion>
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
                 </exclusion>
+                <!-- hash4j not present in artifactory -->
                 <exclusion>
-                    <groupId>org.bitbucket.b_c</groupId>
-                    <artifactId>jose4j</artifactId>
+                    <groupId>com.dynatrace.hash4j</groupId>
+                    <artifactId>hash4j</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>${mockito-junit-jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito-core.version}</version>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-kafka</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>${test-containers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>kafka</artifactId>
-            <version>${test-containers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>${test-containers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>${wiremock.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-            <version>${avro.version}</version>
-        </dependency>
-        <!-- Source: https://mvnrepository.com/artifact/org.assertj/assertj-core -->
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj-core.version}</version>
+            <version>${wiremock-standalone.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -233,11 +201,6 @@
             <groupId>io.projectreactor.netty</groupId>
             <artifactId>reactor-netty-http</artifactId>
             <version>${reactor-netty-http.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>${okhttp.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -260,50 +223,13 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-                <configuration>
-                    <argLine>-Dfile.encoding=UTF-8</argLine>
-                    <argLine>${surefireArgLine}</argLine>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <skipTests>${skip.unit.tests}</skipTests>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${maven-failsafe-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <properties>
-                        <property>
-                            <name>listener</name>
-                            <value>org.sonar.java.jacoco.JUnitListener</value>
-                        </property>
-                    </properties>
-                    <argLine>-Dfile.encoding=UTF-8</argLine>
-                    <argLine>${failsafeArgLine}</argLine>
-                    <classesDirectory>${project.build.outputDirectory}</classesDirectory>
-                    <skipITs>${skip.integration.tests}</skipITs>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>${jib.version}</version>
+                <version>${jib-maven-plugin.version}</version>
                 <configuration>
                     <containerizingMode>packaged</containerizingMode>
                     <from>
-                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-build-21:latest</image>
+                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-runtime-21:latest</image>
                     </from>
                     <to>
                         <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/payment-processed-consumer-java:latest
@@ -315,12 +241,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-maven-plugin.version}</version>
-                <configuration>
-                    <append>true</append>
-                    <destFile>${sonar.jacoco.reports}/jacoco.exec</destFile>
-                    <dataFile>${sonar.jacoco.reports}/jacoco.exec</dataFile>
-                    <outputDirectory>${sonar.jacoco.reports}/jacoco</outputDirectory>
-                </configuration>
                 <executions>
                     <execution>
                         <id>pre-unit-test</id>
@@ -356,6 +276,34 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>${surefireArgLine} -Dfile.encoding=UTF-8</argLine>
+                    <skipTests>${skip.unit.tests}</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <argLine>${failsafeArgLine} -Dfile.encoding=UTF-8</argLine>
+                    <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                    <skipITs>${skip.integration.tests}</skipITs>
+                </configuration>
             </plugin>
         </plugins>
     </build>
