@@ -22,12 +22,7 @@ public class TestConsumerAspect {
 
     @After("execution(* Consumer.consume(..))")
     void afterConsume(JoinPoint joinPoint) {
-        System.out.println("TestConsumerAspect: afterConsume called");
-        System.out.println("  Thread: " + Thread.currentThread().getName());
-        System.out.println("  Arguments: " + java.util.Arrays.toString(joinPoint.getArgs()));
-        System.out.println("  Latch count before: " + latch.getCount());
         latch.countDown();
-        System.out.println("  Latch count after: " + latch.getCount());
     }
 
     public CountDownLatch getLatch() {

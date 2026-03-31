@@ -1,24 +1,97 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
-import org.springframework.context.annotation.Import;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.google.common.collect.Iterables;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
-import org.testcontainers.utility.DockerImageName;
+import uk.gov.companieshouse.paymentprocessed.consumer.serdes.KafkaPayloadDeserialiser;
 
-@Testcontainers
-@Import(TestKafkaConfig.class)
-public abstract class AbstractKafkaIT {
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-    @Container
-    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(DockerImageName.parse(
-            "confluentinc/cp-kafka:latest"));
+@WireMockTest(httpPort = 8889)
+abstract class AbstractKafkaIT {
+
+    protected static final String CONSUMER_MAIN_TOPIC = "payment-processed";
+    protected static final String CONSUMER_RETRY_TOPIC = "payment-processed-payment-processed-consumer-group-retry";
+    protected static final String CONSUMER_ERROR_TOPIC = "payment-processed-payment-processed-consumer-group-error";
+    protected static final String CONSUMER_INVALID_TOPIC = "payment-processed-payment-processed-consumer-group-invalid";
+    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:latest")
+            .withReuse(true);
+
+    protected KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
+    protected KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
+
+    @Autowired
+    protected TestConsumerAspect testConsumerAspect;
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-        System.out.println("Kafka bootstrap servers: " + kafka.getBootstrapServers());
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        kafka.start();
+    }
+
+    @BeforeEach
+    protected void setup() {
+        testConsumerAspect.resetLatch();
+        testConsumer.subscribe(getSubscribedTopics());
+        testConsumer.poll(Duration.ofMillis(1000));
+        WireMock.reset();
+    }
+
+    protected List<String> getSubscribedTopics() {
+        return List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC);
+    }
+
+    protected static int recordsPerTopic(ConsumerRecords<?, ?> records, String topic) {
+        return Iterables.size(records.records(topic));
+    }
+
+    KafkaConsumer<String, byte[]> testConsumer(@Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
+        KafkaConsumer<String, byte[]> consumer = new KafkaConsumer<>(
+                Map.of(
+                        ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
+                        ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
+                        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
+                        ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class,
+                        ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, KafkaPayloadDeserialiser.class,
+                        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
+                        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false",
+                        ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString()),
+                new StringDeserializer(), new ByteArrayDeserializer());
+        consumer.subscribe(List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC));
+        return consumer;
+    }
+
+
+    KafkaProducer<String, byte[]> testProducer(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
+        return new KafkaProducer<>(
+                Map.of(
+                        ProducerConfig.ACKS_CONFIG, "all",
+                        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers),
+                new StringSerializer(), new ByteArraySerializer());
     }
 }
