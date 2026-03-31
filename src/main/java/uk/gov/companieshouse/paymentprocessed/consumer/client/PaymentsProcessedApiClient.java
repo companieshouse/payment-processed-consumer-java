@@ -68,7 +68,7 @@ public class PaymentsProcessedApiClient {
                     .getData());
             loggingPaymentResponse(resourceID, response);
         } catch (ApiErrorResponseException ex) {
-            LOGGER.error(String.format("Unable to obtain response from %s and exception message %s", GET_PAYMENT_CALL, ex.getMessage()), DataMapHolder.getLogMap());
+            LOGGER.error("Error response calling %s".formatted(GET_PAYMENT_CALL), ex, DataMapHolder.getLogMap());
             if (ex.getStatusCode() == HttpStatus.GONE.value() && checkSkipGoneResource(resourceID, skipGoneResource)) {
                 return Optional.empty();
             }
@@ -111,8 +111,8 @@ public class PaymentsProcessedApiClient {
         } catch (WebClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {
-            String defaultErrorMessage = String.format("Unexpected error occurred during PATCH request for resource URI: %s with message %s", paymentsPatchUri, ex.getMessage());
-            LOGGER.error(defaultErrorMessage, DataMapHolder.getLogMap());
+            String defaultErrorMessage = "Error response calling %s".formatted(PATCH_PAYMENT_CALL);
+            LOGGER.error(defaultErrorMessage, ex, DataMapHolder.getLogMap());
             throw new RetryableException(defaultErrorMessage, ex);
         }
     }

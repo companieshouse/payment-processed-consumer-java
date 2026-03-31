@@ -145,7 +145,7 @@ public class PaymentsProcessedApiClientTest {
         when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenThrow(new RetryableException("Payments Consumer API Patch Payment failed"));
+        when(responseSpec.toBodilessEntity()).thenThrow(new RetryableException("Error response calling Patch Payment"));
 
         // Act & Assert
         RetryableException exception = Assertions.assertThrows(RetryableException.class, () ->
@@ -153,7 +153,7 @@ public class PaymentsProcessedApiClientTest {
         );
 
         // Verify
-        Assertions.assertTrue(exception.getMessage().contains("Payments Consumer API Patch Payment failed"));
+        Assertions.assertTrue(exception.getMessage().contains("Error response calling Patch Payment"));
         verify(webClient, times(1)).patch();
         verify(requestBodyUriSpec, times(1)).uri(paymentsPatchUri);
         verify(requestBodySpec, times(1)).contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON));
