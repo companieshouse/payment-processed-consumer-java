@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.google.common.collect.Iterables;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -12,13 +11,14 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import uk.gov.companieshouse.paymentprocessed.consumer.serdes.KafkaPayloadDeserialiser;
 
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@Testcontainers
 @WireMockTest(httpPort = 8889)
 abstract class AbstractKafkaIT {
 
@@ -34,8 +35,8 @@ abstract class AbstractKafkaIT {
     protected static final String CONSUMER_RETRY_TOPIC = "payment-processed-payment-processed-consumer-group-retry";
     protected static final String CONSUMER_ERROR_TOPIC = "payment-processed-payment-processed-consumer-group-error";
     protected static final String CONSUMER_INVALID_TOPIC = "payment-processed-payment-processed-consumer-group-invalid";
-    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:latest")
-            .withReuse(true);
+    @Container
+    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:latest");
 
     protected KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
     protected KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
@@ -47,18 +48,12 @@ abstract class AbstractKafkaIT {
     static void props(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
-
-    @BeforeAll
-    static void beforeAll() {
-        kafka.start();
-    }
-
+    
     @BeforeEach
     protected void setup() {
         testConsumerAspect.resetLatch();
         testConsumer.subscribe(getSubscribedTopics());
         testConsumer.poll(Duration.ofMillis(1000));
-        WireMock.reset();
     }
 
     protected List<String> getSubscribedTopics() {

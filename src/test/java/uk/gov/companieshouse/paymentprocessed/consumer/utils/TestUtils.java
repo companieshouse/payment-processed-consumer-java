@@ -78,7 +78,7 @@ public class TestUtils {
         PaymentResponse paymentResponse = new PaymentResponse();
         // Set values using setters
         paymentResponse.setAmount("55.00");
-        paymentResponse.setCompletedAt(Instant.parse("2026-02-05T15:10:35.12+00:00"));
+        paymentResponse.setCompletedAt(Instant.parse("2026-02-05T15:10:35.060+00:00"));
         paymentResponse.setCreatedAt(Instant.parse("2026-02-05T15:10:35.00+00:00"));
         paymentResponse.setDescription("Application to register a Companies House authorised agent");
 
