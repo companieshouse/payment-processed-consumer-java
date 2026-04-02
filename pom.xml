@@ -39,7 +39,7 @@
         <reactor-netty-http.version>1.3.4</reactor-netty-http.version>
         <netty-all.version>4.2.10.Final</netty-all.version>
         <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
-        <junit-jupiter.version>1.21.4</junit-jupiter.version>
+        <testcontainers-bom.version>1.21.4</testcontainers-bom.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -53,7 +53,7 @@
             <dependency>
                 <groupId>org.testcontainers</groupId>
                 <artifactId>testcontainers-bom</artifactId>
-                <version>1.21.4</version> <!-- Matches your junit-jupiter.version property -->
+                <version>${testcontainers-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
