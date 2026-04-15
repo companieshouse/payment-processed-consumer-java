@@ -12,7 +12,6 @@ import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 
-import java.text.ParseException;
 import java.time.Duration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -36,7 +35,7 @@ class PaymentsProcessedApiClientWireMockTest {
             null, null, null);
 
     @Test
-    void shouldHandleSuccessfulPatchRequest() throws ParseException {
+    void shouldHandleSuccessfulPatchRequest() {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -52,7 +51,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleBadRequest() throws ParseException {
+    void shouldHandleBadRequest() {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -69,7 +68,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleConflict() throws ParseException {
+    void shouldHandleConflict() {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -86,7 +85,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldHandleServerError() throws ParseException {
+    void shouldHandleServerError() {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
@@ -103,7 +102,7 @@ class PaymentsProcessedApiClientWireMockTest {
     }
 
     @Test
-    void shouldThrowTimeoutExceptionUsingWireMock() throws ParseException {
+    void shouldThrowTimeoutExceptionUsingWireMock() {
         // Arrange
         PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
         // Simulate a delayed response
