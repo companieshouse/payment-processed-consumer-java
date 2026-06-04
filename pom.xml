@@ -21,20 +21,22 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!--Companies House-->
-        <kafka-models.version>3.0.33</kafka-models.version>
-        <private-api-sdk-java.version>6.0.21</private-api-sdk-java.version>
-        <structured-logging.version>3.0.57</structured-logging.version>
+        <api-sdk-java.version>6.6.23</api-sdk-java.version>
+        <ch-core-bom.version>0.1.4</ch-core-bom.version>
+        <ch-dependency-bom.version>0.1.4</ch-dependency-bom.version>
+        <ch-test-bom.version>0.1.4</ch-test-bom.version>
+        <private-api-sdk-java.version>6.0.23</private-api-sdk-java.version>
         <!--External-->
         <avro.version>1.12.1</avro.version>
-        <grpc-bom.version>1.80.0</grpc-bom.version>
-        <jackson-bom.version>3.1.4</jackson-bom.version>
+        <guava.version>33.6.0-jre</guava.version>
         <jackson-fasterxml.bom.version>2.21.4</jackson-fasterxml.bom.version>
-        <netty-all.version>4.2.15.Final</netty-all.version>
+        <kafka-clients.version>4.2.1</kafka-clients.version>
+        <reactor-core.version>3.8.5</reactor-core.version>
         <reactor-netty-http.version>1.3.5</reactor-netty-http.version>
-        <testcontainers-bom.version>1.21.4</testcontainers-bom.version>
         <tomcat-embed.version>11.0.22</tomcat-embed.version>
         <!--Test-->
         <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
+        <testcontainers-bom.version>1.21.4</testcontainers-bom.version>
         <!--Plugin-->
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <jib-maven-plugin.version>3.5.1</jib-maven-plugin.version>
@@ -44,10 +46,70 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+<!--            <dependency>-->
+<!--                <groupId>uk.gov.companieshouse</groupId>-->
+<!--                <artifactId>ch-dependency-bom</artifactId>-->
+<!--                <version>${ch-dependency-bom.version}</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>uk.gov.companieshouse</groupId>-->
+<!--                <artifactId>ch-core-bom</artifactId>-->
+<!--                <version>${ch-core-bom.version}</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>uk.gov.companieshouse</groupId>-->
+<!--                <artifactId>ch-test-bom</artifactId>-->
+<!--                <version>${ch-test-bom.version}</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+            <!--CVE-2026-42581-->
+            <!--CVE-2026-42580 -->
+            <!--CVE-2026-42585 -->
+            <!--CVE-2026-42584 -->
+            <!--CVE-2026-42583 -->
+            <!--CVE-2026-42582 -->
+            <!--CVE-2026-41417 -->
+            <!--CVE-2026-42578 -->
+            <!--CVE-2026-42577 -->
+            <!--CVE-2026-42587 -->
+            <!--CVE-2026-42586 -->
+            <!--CVE-2026-44248 -->
+            <!--CVE-2026-42579-->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.2.15.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- required due to a conflict in version between the spring-boot-dependencies-bom and ch-test-bom-->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>6.0.3</version>
+            </dependency>
+            <!-- required due to a conflict in version between the spring-boot-dependencies-bom and ch-test-bom-->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>6.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>${jackson-fasterxml.bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -59,36 +121,6 @@
                 <scope>import</scope>
             </dependency>
             <!-- start fix versions for vulnerable transitive dependencies -->
-            <!-- CVE-2025-33042 -->
-            <dependency>
-                <groupId>org.apache.avro</groupId>
-                <artifactId>avro</artifactId>
-                <version>${avro.version}</version>
-            </dependency>
-            <!-- GHSA-72hv-8253-57qq -->
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>${jackson-fasterxml.bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <!-- GHSA-72hv-8253-57qq -->
-            <dependency>
-                <groupId>tools.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>${jackson-bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <!-- CVE-2026-33186(9.1) Fix-->
-            <dependency>
-                <groupId>io.grpc</groupId>
-                <artifactId>grpc-bom</artifactId>
-                <version>${grpc-bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <!--CVE-2026-34500 Fix-->
             <dependency>
                 <groupId>org.apache.tomcat.embed</groupId>
@@ -109,8 +141,12 @@
         <!--Companies House-->
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
+            <artifactId>api-sdk-java</artifactId>
+            <version>${api-sdk-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.gov.companieshouse</groupId>
             <artifactId>kafka-models</artifactId>
-            <version>${kafka-models.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.lz4</groupId>
@@ -136,7 +172,6 @@
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>structured-logging</artifactId>
-            <version>${structured-logging.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -146,14 +181,45 @@
         </dependency>
         <!--External-->
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty-all.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>${reactor-core.version}</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor.netty</groupId>
             <artifactId>reactor-netty-http</artifactId>
             <version>${reactor-netty-http.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka-clients.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
