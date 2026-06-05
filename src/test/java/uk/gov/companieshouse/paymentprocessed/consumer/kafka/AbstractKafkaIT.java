@@ -36,7 +36,8 @@ abstract class AbstractKafkaIT {
     protected static final String CONSUMER_ERROR_TOPIC = "payment-processed-payment-processed-consumer-group-error";
     protected static final String CONSUMER_INVALID_TOPIC = "payment-processed-payment-processed-consumer-group-invalid";
     @Container
-    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:latest");
+    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:7."
+            + "6.1");
 
     protected KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
     protected KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());

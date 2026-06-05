@@ -1,7 +1,10 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
@@ -10,18 +13,11 @@ import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.api.model.payment.RefundModel;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
-
 public class TestUtils {
 
     public static final String RESOURCE_LINK = "/transactions/174365-968117-586962/payment";
 
     public static final String GET_URI = "/payments/P9hl8PWQQrKRBk1Zmc";
-
 
     public static ApiResponse<PaymentResponse> getPaymentResponse() {
         PaymentResponse paymentResponse = new PaymentResponse();
@@ -60,10 +56,6 @@ public class TestUtils {
         paymentPatchRequestApi.setPaidAt(date);
 
         return paymentPatchRequestApi;
-    }
-
-    public static ObjectMapper getObjectMapper() {
-        return new ObjectMapper().registerModule(new JavaTimeModule());
     }
 
     @NotNull

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,8 +32,14 @@ class PaymentsProcessedApiClientWireMockTest {
     public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_8080 + PAYMENTS;
 
     private final PaymentsProcessedApiClient paymentsProcessedApiClient = new PaymentsProcessedApiClient(
-            null, new ResponseHandler(), new ObjectMapper(), WebClient.create(),
+            null, new ResponseHandler(), configuredMapper(), WebClient.create(),
             null, null, null);
+
+    private static ObjectMapper configuredMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.findAndRegisterModules();
+        return mapper;
+    }
 
     @Test
     void shouldHandleSuccessfulPatchRequest() {
@@ -118,7 +125,7 @@ class PaymentsProcessedApiClientWireMockTest {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
 
-        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(), new ObjectMapper(), webClient, null, null, null);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(), configuredMapper(), webClient, null, null, null);
 
         // Act & Assert
         Assertions.assertThrows(Exception.class, () ->

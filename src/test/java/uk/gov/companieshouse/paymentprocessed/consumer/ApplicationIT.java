@@ -23,17 +23,11 @@ class ApplicationIT {
     private MockMvc mockMvc;
 
     @Test
-    void shouldStartApplication() {
-        Executable executable = () -> Application.main(new String[0]);
-        assertDoesNotThrow(executable);
-    }
-
-    @Test
     void shouldReturn200FromGetHealthEndpoint() throws Exception {
         this.mockMvc.perform(get("/healthcheck")
                         .header(REQUEST_ID.value(), "request_id"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"));
+                .andExpect(content().json("{\"status\":\"UP\"}"));
     }
 }

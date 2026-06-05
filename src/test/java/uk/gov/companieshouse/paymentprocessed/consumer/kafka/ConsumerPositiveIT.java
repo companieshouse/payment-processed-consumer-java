@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -45,6 +46,9 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
     private static final String PAYMENT_RESOURCE_PARAMS = "/paymentResource?subNumber=000-016&formType=1123";
     private static final String BASKET_CHECKOUT = "/basket/checkouts/ORD-905317-719212/payment";
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
         registry.add("steps", () -> 1);
@@ -61,7 +65,6 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         DatumWriter<payment_processed> writer = new ReflectDatumWriter<>(payment_processed.class);
         writer.write(getPaymentProcessed(), encoder);
         ApiResponse<PaymentResponse> apiResponse = TestUtils.getPaymentResponse();
-        ObjectMapper objectMapper = TestUtils.getObjectMapper();
         apiResponse.getData().getLinks().setResource("http://localhost" + ":8889" + resource);
         String apiResponseJson = objectMapper.writeValueAsString(apiResponse.getData());
         stubFor(get(GET_URI)
@@ -101,7 +104,6 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         paymentProcessed.setRefundId("R123");
         writer.write(paymentProcessed, encoder);
         ApiResponse<PaymentResponse> apiResponse = TestUtils.getPaymentResponseRefund();
-        ObjectMapper objectMapper = TestUtils.getObjectMapper();
         apiResponse.getData().getLinks().setResource("http://localhost" + ":8889" + RESOURCE_LINK);
         String apiResponseJson = objectMapper.writeValueAsString(apiResponse.getData());
         stubFor(get(GET_URI)
