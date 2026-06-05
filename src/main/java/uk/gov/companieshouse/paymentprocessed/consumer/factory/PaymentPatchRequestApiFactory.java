@@ -7,6 +7,7 @@ import java.time.Instant;
 
 @Component
 public interface PaymentPatchRequestApiFactory {
+
     PaymentPatchRequestApi createPaymentPatchRequest(String status, Instant paidAt, String paymentReference);
 
     PaymentPatchRequestApi createPaymentRefundPatchRequest(String refundId, String paymentReference);

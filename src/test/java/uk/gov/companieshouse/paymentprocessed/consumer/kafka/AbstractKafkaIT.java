@@ -49,7 +49,7 @@ abstract class AbstractKafkaIT {
     static void props(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
-    
+
     @BeforeEach
     protected void setup() {
         testConsumerAspect.resetLatch();
@@ -77,7 +77,8 @@ abstract class AbstractKafkaIT {
                         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false",
                         ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString()),
                 new StringDeserializer(), new ByteArrayDeserializer());
-        consumer.subscribe(List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC));
+        consumer.subscribe(
+                List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC));
         return consumer;
     }
 

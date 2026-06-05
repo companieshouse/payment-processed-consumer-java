@@ -41,10 +41,18 @@ class ConsumerInvalidPayloadExceptionIT extends AbstractKafkaIT {
         Properties props = new Properties();
         props.put("bootstrap.servers", kafka.getBootstrapServers());
         try (AdminClient adminClient = AdminClient.create(props)) {
-            adminClient.createTopics(Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_MAIN_TOPIC, 1, (short) 1))).all().get();
-            adminClient.createTopics(Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_RETRY_TOPIC, 1, (short) 1))).all().get();
-            adminClient.createTopics(Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_ERROR_TOPIC, 1, (short) 1))).all().get();
-            adminClient.createTopics(Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_INVALID_TOPIC, 1, (short) 1))).all().get();
+            adminClient.createTopics(
+                            Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_MAIN_TOPIC, 1, (short) 1))).all()
+                    .get();
+            adminClient.createTopics(
+                            Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_RETRY_TOPIC, 1, (short) 1))).all()
+                    .get();
+            adminClient.createTopics(
+                            Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_ERROR_TOPIC, 1, (short) 1))).all()
+                    .get();
+            adminClient.createTopics(
+                            Collections.singletonList(new NewTopic(AbstractKafkaIT.CONSUMER_INVALID_TOPIC, 1, (short) 1))).all()
+                    .get();
         } catch (Exception e) {
             // Topics probably already exist, ignore
         }

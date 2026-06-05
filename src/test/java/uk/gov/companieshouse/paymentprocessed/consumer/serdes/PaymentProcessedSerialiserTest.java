@@ -34,7 +34,6 @@ class PaymentProcessedSerialiserTest {
         // given
         payment_processed paymentProcessed = getPaymentProcessed();
 
-
         try (KafkaPayloadSerialiser serialiser = new KafkaPayloadSerialiser()) {
             // when
             byte[] actual = serialiser.serialize("topic", paymentProcessed);
@@ -48,7 +47,6 @@ class PaymentProcessedSerialiserTest {
     void testThrowNonRetryableExceptionIfIOExceptionThrown() throws IOException {
         // given
         payment_processed paymentProcessed = getPaymentProcessed();
-
 
         KafkaPayloadSerialiser serialiser = spy(new KafkaPayloadSerialiser());
         when(serialiser.getDatumWriter()).thenReturn(writer);

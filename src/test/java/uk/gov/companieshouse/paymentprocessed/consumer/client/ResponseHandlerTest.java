@@ -33,7 +33,8 @@ class ResponseHandlerTest {
 
     @ParameterizedTest()
     @MethodSource("scenarios")
-    void shouldHandleApiErrorResponseGetScenarios(HttpStatus apiResponseStatus, Class<RuntimeException> expectedException) {
+    void shouldHandleApiErrorResponseGetScenarios(HttpStatus apiResponseStatus,
+            Class<RuntimeException> expectedException) {
         // given
         apiErrorResponseException = new ApiErrorResponseException(
                 new HttpResponseException.Builder(apiResponseStatus.value(), "", new HttpHeaders()));
@@ -47,13 +48,15 @@ class ResponseHandlerTest {
 
     @ParameterizedTest()
     @MethodSource("scenarios")
-    void shouldHandleApiErrorPatchResponseScenarios(HttpStatus apiResponseStatus, Class<RuntimeException> expectedException) {
+    void shouldHandleApiErrorPatchResponseScenarios(HttpStatus apiResponseStatus,
+            Class<RuntimeException> expectedException) {
         // given
         apiErrorResponseException = new ApiErrorResponseException(
                 new HttpResponseException.Builder(apiResponseStatus.value(), "", new HttpHeaders()));
 
         // when
-        Executable executable = () -> responseHandler.handle(PATCH_PAYMENT_CALL, RESOURCE_ID, apiErrorResponseException);
+        Executable executable = () -> responseHandler.handle(PATCH_PAYMENT_CALL, RESOURCE_ID,
+                apiErrorResponseException);
 
         // then
         assertThrows(expectedException, executable);

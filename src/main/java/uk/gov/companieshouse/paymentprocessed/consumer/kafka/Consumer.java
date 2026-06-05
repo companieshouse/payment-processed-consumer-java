@@ -9,6 +9,7 @@ import uk.gov.companieshouse.paymentprocessed.consumer.service.PaymentProcessedS
 
 @Component
 public class Consumer {
+
     private final PaymentProcessedServiceRouter paymentProcessedServiceRouter;
 
     private final MessageFlags messageFlags;

@@ -7,6 +7,7 @@ import java.time.Instant;
 
 @Component
 public class PaymentPatchRequestApiFactoryImpl implements PaymentPatchRequestApiFactory {
+
     @Override
     public PaymentPatchRequestApi createPaymentPatchRequest(String status, Instant paidAt, String paymentReference) {
         PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();

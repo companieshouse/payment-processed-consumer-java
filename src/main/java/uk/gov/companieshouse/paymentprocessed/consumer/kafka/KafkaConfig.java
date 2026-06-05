@@ -57,7 +57,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, payment_processed> paymentProcessedKafkaListenerContainerFactory(ConsumerFactory<String, payment_processed> consumerFactory) {
+    public ConcurrentKafkaListenerContainerFactory<String, payment_processed> paymentProcessedKafkaListenerContainerFactory(
+            ConsumerFactory<String, payment_processed> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, payment_processed> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
@@ -67,8 +68,8 @@ public class KafkaConfig {
 
     @Bean
     public ProducerFactory<String, Object> paymentProcessedProducerFactory(MessageFlags messageFlags,
-                                                                           @Value("${payment.processed.topic}") String topic,
-                                                                           @Value("${payment.processed.group.name}") String groupId) {
+            @Value("${payment.processed.topic}") String topic,
+            @Value("${payment.processed.group.name}") String groupId) {
         return new DefaultKafkaProducerFactory<>(
                 Map.of(
                         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
@@ -92,9 +93,9 @@ public class KafkaConfig {
 
     @Bean
     public RetryTopicConfiguration retryTopicConfiguration(KafkaTemplate<String, Object> template,
-                                                           @Value("${payment.processed.group.name}") String groupId,
-                                                           @Value("${maximum.retry.attempts}") int attempts,
-                                                           @Value("${consumer.backoff-delay}") int delay) {
+            @Value("${payment.processed.group.name}") String groupId,
+            @Value("${maximum.retry.attempts}") int attempts,
+            @Value("${consumer.backoff-delay}") int delay) {
         return RetryTopicConfigurationBuilder
                 .newInstance()
                 .doNotAutoCreateRetryTopics() // this is necessary to prevent failing connection during loading of spring app context

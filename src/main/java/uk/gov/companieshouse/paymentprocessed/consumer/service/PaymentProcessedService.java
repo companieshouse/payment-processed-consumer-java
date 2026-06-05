@@ -17,13 +17,15 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESP
 
 @Service
 public class PaymentProcessedService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(NAMESPACE);
 
     private final PaymentsProcessedApiClient paymentsProcessedApiClient;
 
     private final PaymentPatchRequestApiFactoryImpl paymentPatchRequestApiFactoryImpl;
 
-    public PaymentProcessedService(PaymentsProcessedApiClient paymentsProcessedApiClient, PaymentPatchRequestApiFactoryImpl paymentPatchRequestApiFactoryImpl) {
+    public PaymentProcessedService(PaymentsProcessedApiClient paymentsProcessedApiClient,
+            PaymentPatchRequestApiFactoryImpl paymentPatchRequestApiFactoryImpl) {
         this.paymentsProcessedApiClient = paymentsProcessedApiClient;
         this.paymentPatchRequestApiFactoryImpl = paymentPatchRequestApiFactoryImpl;
     }
@@ -42,8 +44,10 @@ public class PaymentProcessedService {
         PaymentPatchRequestApi paymentPatchRequestApi = null;
         if (paymentProcessed.getRefundId() != null && paymentResponse.getRefunds() != null) {
             LOGGER.info("Refund ID present in message, for PaymentResourceId" + paymentResourceId);
-            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(paymentProcessed.getRefundId(), paymentProcessed.getPaymentResourceId());
-            Optional<RefundModel> refundOptional = paymentResponse.getRefunds().stream().filter(refund -> refund.getRefundId().equals(paymentProcessed.getRefundId())).findFirst();
+            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(
+                    paymentProcessed.getRefundId(), paymentProcessed.getPaymentResourceId());
+            Optional<RefundModel> refundOptional = paymentResponse.getRefunds().stream()
+                    .filter(refund -> refund.getRefundId().equals(paymentProcessed.getRefundId())).findFirst();
             if (refundOptional.isPresent()) {
                 RefundModel refund = refundOptional.get();
                 paymentPatchRequestApi.setRefundReference(refund.getRefundReference());
@@ -53,7 +57,9 @@ public class PaymentProcessedService {
             }
 
         } else {
-            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(paymentResponse.getStatus(), paymentResponse.getCompletedAt(), paymentProcessed.getPaymentResourceId());
+            paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentPatchRequest(
+                    paymentResponse.getStatus(), paymentResponse.getCompletedAt(),
+                    paymentProcessed.getPaymentResourceId());
         }
         paymentsProcessedApiClient.patchPayment(patchUri, paymentPatchRequestApi);
         LOGGER.info("Payment Patched Successfully, for PaymentResourceId " + paymentResourceId);

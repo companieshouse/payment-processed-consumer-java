@@ -125,7 +125,8 @@ class PaymentsProcessedApiClientWireMockTest {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
 
-        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(), configuredMapper(), webClient, null, null, null);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(),
+                configuredMapper(), webClient, null, null, null);
 
         // Act & Assert
         Assertions.assertThrows(Exception.class, () ->

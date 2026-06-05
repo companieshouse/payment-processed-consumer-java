@@ -28,7 +28,8 @@ public class KafkaPayloadDeserialiser implements Deserializer<payment_processed>
             return reader.read(null, decoder);
         } catch (IOException | AvroRuntimeException e) {
             LOGGER.error("Error deserialising message payload.", e);
-            throw new InvalidPayloadException(String.format("Invalid payload: [%s] was provided.", new String(data)), e);
+            throw new InvalidPayloadException(String.format("Invalid payload: [%s] was provided.", new String(data)),
+                    e);
         }
     }
 }
