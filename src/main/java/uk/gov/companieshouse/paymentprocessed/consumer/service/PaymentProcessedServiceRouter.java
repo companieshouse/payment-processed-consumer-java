@@ -22,9 +22,8 @@ public class PaymentProcessedServiceRouter {
 
     public void route(Message<payment_processed> message) {
         payment_processed paymentProcessed = message.getPayload();
-        LOGGER.info(
-                "Received payment processed message for PaymentResourceId" + paymentProcessed.getPaymentResourceId(),
-                DataMapHolder.getLogMap());
+        LOGGER.info(String.format("Received payment processed message for PaymentResourceId: %s",
+                paymentProcessed.getPaymentResourceId()), DataMapHolder.getLogMap());
         message.getHeaders()
                 .forEach((key, value) -> LOGGER.info(" '%s' = %s".formatted(key, value), DataMapHolder.getLogMap()));
         paymentProcessedService.processMessage(paymentProcessed);

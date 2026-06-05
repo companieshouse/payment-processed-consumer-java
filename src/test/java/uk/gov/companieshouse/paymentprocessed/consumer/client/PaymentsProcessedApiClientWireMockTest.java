@@ -1,20 +1,5 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
-import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
-import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
-import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
-
-import java.time.Duration;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
@@ -23,6 +8,19 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentPatchRequestApi;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.time.Duration;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
+import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 
 @WireMockTest(httpPort = 8080)
 class PaymentsProcessedApiClientWireMockTest {

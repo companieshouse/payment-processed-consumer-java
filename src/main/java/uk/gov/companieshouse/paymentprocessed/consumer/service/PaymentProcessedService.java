@@ -41,7 +41,7 @@ public class PaymentProcessedService {
         }
         PaymentResponse paymentResponse = paymentResponseOptional.get();
         String patchUri = paymentResponse.getLinks().getResource();
-        PaymentPatchRequestApi paymentPatchRequestApi = null;
+        PaymentPatchRequestApi paymentPatchRequestApi;
         if (paymentProcessed.getRefundId() != null && paymentResponse.getRefunds() != null) {
             LOGGER.info("Refund ID present in message, for PaymentResourceId" + paymentResourceId);
             paymentPatchRequestApi = paymentPatchRequestApiFactoryImpl.createPaymentRefundPatchRequest(

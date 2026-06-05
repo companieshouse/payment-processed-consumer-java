@@ -112,8 +112,8 @@ public class PaymentsProcessedApiClient {
                     .toBodilessEntity()
                     .block();
             if (response != null) {
-                LOGGER.info(String.format("Successfully called %s for resource ID: %s and status code: %s",
-                                PATCH_PAYMENT_CALL, paymentPatchRequestApi, response.getStatusCode()),
+                LOGGER.info(String.format("Successfully called %s for resource URI: %s and status code: %s",
+                                PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode()),
                         DataMapHolder.getLogMap());
             }
         } catch (WebClientResponseException ex) {

@@ -35,12 +35,13 @@ abstract class AbstractKafkaIT {
     protected static final String CONSUMER_RETRY_TOPIC = "payment-processed-payment-processed-consumer-group-retry";
     protected static final String CONSUMER_ERROR_TOPIC = "payment-processed-payment-processed-consumer-group-error";
     protected static final String CONSUMER_INVALID_TOPIC = "payment-processed-payment-processed-consumer-group-invalid";
-    @Container
-    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:7."
-            + "6.1");
 
-    protected KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
-    protected KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
+    @Container
+    protected static final ConfluentKafkaContainer kafka =
+            new ConfluentKafkaContainer("confluentinc/cp-kafka:7.6.1");
+
+    protected final KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
+    protected final KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
 
     @Autowired
     protected TestConsumerAspect testConsumerAspect;

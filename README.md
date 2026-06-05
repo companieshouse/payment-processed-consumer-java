@@ -58,9 +58,9 @@ The following sequence diagram illustrates the message processing flow:
 
 ### 5. Patching Request
 
-- The service check if the payment details from payment session response is of refund type or other
-  type of Payments
-- refund then create a refund request atch it as refundRequest
+- The service checks if the payment details from payment session response is of type refund or
+- another type of Payments
+- refund then create a refund request patch it as refundRequest
 - Otherwise Proceed to Patch it as patchRequest.
 - **Error Handling**: If the API call fails:
     - if Response return Bad Request and Conflict then its Non-retryable.
@@ -123,6 +123,7 @@ or run the following steps to build image locally:
    SSH key is
    passphrase protected)
 2.
+
 `DOCKER_BUILDKIT=0 docker build --build-arg SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" --build-arg SSH_PRIVATE_KEY_PASSPHRASE -t 416670754337.dkr.ecr.eu-west-2.amazonaws.com//payment-processed-consumer-java:latest .`
 
 ## Configuration
@@ -147,6 +148,6 @@ or run the following steps to build image locally:
 | LOGLEVEL                      | The level of log messages output to the logs                                         | debug                             |
 | PORT                          | The port at which the service is hosted in ECS                                       | 8080                              |
 | SKIP_GONE_RESOURCE            | To Skip a gone resource or not                                                       | true                              |
-| SKIP_GONE_RESOURCE_ID         | Id of payment resource to be skipped                                                 | 1234                              
-| TIMEOUT_MILLISECONDS          | Amount of time maximum to wait for request to be completed                           | 6000                              
-| PAYMENTS_API_URL              | payments url to be use as base path                                                  | 1234                              
+| SKIP_GONE_RESOURCE_ID         | Id of payment resource to be skipped                                                 | 1234                              |
+| TIMEOUT_MILLISECONDS          | Amount of time maximum to wait for request to be completed                           | 6000                              |
+| PAYMENTS_API_URL              | payments url to be use as base path                                                  | 1234                              |
