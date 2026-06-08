@@ -24,8 +24,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!--Companies House-->
     <api-sdk-java.version>6.6.23</api-sdk-java.version>
-    <ch-dependency-bom.version>0.1.5</ch-dependency-bom.version>
-    <ch-test-bom.version>0.1.5</ch-test-bom.version>
+    <ch-dependency-bom.version>0.1.6</ch-dependency-bom.version>
+    <ch-test-bom.version>0.1.6</ch-test-bom.version>
     <kafka-models.version>3.0.33</kafka-models.version>
     <private-api-sdk-java.version>6.0.23</private-api-sdk-java.version>
     <structured-logging.version>3.0.57</structured-logging.version>
@@ -45,7 +45,7 @@
     <!--Test-->
     <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
     <!--Plugin-->
-    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
     <jib-maven-plugin.version>3.5.1</jib-maven-plugin.version>
     <maven-failsafe-plugin.version>3.5.6</maven-failsafe-plugin.version>
     <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
@@ -107,33 +107,18 @@
         <version>${jackson-core.version}</version>
         <scope>compile</scope>
       </dependency>
-      <!-- required due to a conflict in version between the spring-boot-dependencies-bom and ch-test-bom-->
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>6.0.3</version>
-      </dependency>
-      <!-- required due to a conflict in version between the spring-boot-dependencies-bom and ch-test-bom-->
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-api</artifactId>
-        <version>6.0.3</version>
-      </dependency>
-      <!-- start fix versions for vulnerable transitive dependencies -->
-      <!--CVE-2026-34500 Fix-->
+      <!--CVE-2026-41284, CVE-2026-42498, CVE-2026-43514-->
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-core</artifactId>
-        <version>${tomcat-embed.version}</version>
-        <scope>compile</scope>
+        <version>11.0.22</version>
       </dependency>
+      <!--CVE-2026-41284-->
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-websocket</artifactId>
-        <version>${tomcat-embed.version}</version>
-        <scope>compile</scope>
+        <version>11.0.22</version>
       </dependency>
-      <!-- end fix versions for vulnerable transitive dependencies -->
     </dependencies>
   </dependencyManagement>
   <dependencies>
