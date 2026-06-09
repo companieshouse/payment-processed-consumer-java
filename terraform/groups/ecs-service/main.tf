@@ -19,7 +19,7 @@ terraform {
 }
 
 module "ecs-service" {
-  source = "git@github.com:companieshouse/terraform-modules//aws/ecs/ecs-service?ref=1.0.353"
+  source = "git@github.com:companieshouse/terraform-modules//aws/ecs/ecs-service?ref=1.0.381"
 
 
   # Environmental configuration
@@ -32,16 +32,16 @@ module "ecs-service" {
   batch_service           = true
 
   # ECS Task container health check
-  use_task_container_healthcheck = true
-  healthcheck_path               = local.healthcheck_path
-  healthcheck_matcher            = local.healthcheck_matcher
+  use_task_container_healthcheck    = true
+  healthcheck_path                  = local.healthcheck_path
+  healthcheck_matcher               = local.healthcheck_matcher
   health_check_grace_period_seconds = 180
 
   # Docker container details
-  docker_registry     = var.docker_registry
-  docker_repo         = local.docker_repo
-  container_version   =  var.payment_processed_consumer_java_version
-  container_port      = local.container_port
+  docker_registry   = var.docker_registry
+  docker_repo       = local.docker_repo
+  container_version = var.payment_processed_consumer_java_version
+  container_port    = local.container_port
 
   # Service configuration
   service_name = local.service_name
@@ -60,7 +60,7 @@ module "ecs-service" {
   service_scaleup_schedule             = var.service_scaleup_schedule
   use_capacity_provider                = var.use_capacity_provider
   use_fargate                          = var.use_fargate
-  fargate_subnets                       = local.application_subnet_ids
+  fargate_subnets                      = local.application_subnet_ids
   # Service environment variable and secret configs
   task_environment          = local.task_environment
   task_secrets              = local.task_secrets
@@ -69,8 +69,8 @@ module "ecs-service" {
 }
 
 module "secrets" {
-  source = "git@github.com:companieshouse/terraform-modules//aws/parameter-store?ref=1.0.353"
+  source      = "git@github.com:companieshouse/terraform-modules//aws/parameter-store?ref=1.0.381"
   name_prefix = "${local.service_name}-${var.environment}"
   kms_key_id  = data.aws_kms_key.kms_key.id
-  secrets = nonsensitive(local.service_secrets)
+  secrets     = nonsensitive(local.service_secrets)
 }
