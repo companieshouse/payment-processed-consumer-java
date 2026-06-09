@@ -28,6 +28,7 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESP
 
 @Component
 public class PaymentsProcessedApiClient {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(NAMESPACE);
     private static final String APPLICATION_MERGE_PATCH_JSON = "application/merge-patch+json";
     private static final String GET_PAYMENT_CALL = "GET Payment";
@@ -40,12 +41,13 @@ public class PaymentsProcessedApiClient {
     private final String skipGoneResourceId;
     private final Boolean skipGoneResource;
 
-    PaymentsProcessedApiClient(Supplier<InternalApiClient> internalApiClientFactory, ResponseHandler responseHandler, ObjectMapper objectMapper, WebClient webClient, @Value("${payments.api.url}")
-                               String paymentsApiUrl,
-                               @Value("${skip.gone.resource.id}")
-                               String skipGoneResourceId,
-                               @Value("${skip.gone.resource}")
-                               Boolean skipGoneResource) {
+    PaymentsProcessedApiClient(Supplier<InternalApiClient> internalApiClientFactory, ResponseHandler responseHandler,
+            ObjectMapper objectMapper, WebClient webClient, @Value("${payments.api.url}")
+            String paymentsApiUrl,
+            @Value("${skip.gone.resource.id}")
+            String skipGoneResourceId,
+            @Value("${skip.gone.resource}")
+            Boolean skipGoneResource) {
         this.internalApiClientFactory = internalApiClientFactory;
         this.objectMapper = objectMapper;
         this.responseHandler = responseHandler;
@@ -61,7 +63,8 @@ public class PaymentsProcessedApiClient {
         apiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
         String resourceUri = String.format("/payments/%s", resourceID);
         Optional<PaymentResponse> response = Optional.empty();
-        LOGGER.info(String.format("Initiating %s resource ID: %s and resource URI: %s", GET_PAYMENT_CALL, resourceID, resourceUri));
+        LOGGER.info(String.format("Initiating %s resource ID: %s and resource URI: %s", GET_PAYMENT_CALL, resourceID,
+                resourceUri));
         try {
             response = Optional.ofNullable(apiClient.privatePayment().getPaymentSession(resourceUri)
                     .execute()
@@ -84,7 +87,9 @@ public class PaymentsProcessedApiClient {
             String jsonResponse;
             try {
                 jsonResponse = objectMapper.writeValueAsString(response.get());
-                LOGGER.info(String.format("Successfully called %s for resource ID: %s and response: %s", GET_PAYMENT_CALL, resourceID, jsonResponse));
+                LOGGER.info(
+                        String.format("Successfully called %s for resource ID: %s and response: %s", GET_PAYMENT_CALL,
+                                resourceID, jsonResponse));
             } catch (JsonProcessingException ex) {
                 responseHandler.handle(GET_PAYMENT_CALL, resourceID, ex);
             }
@@ -106,8 +111,11 @@ public class PaymentsProcessedApiClient {
                     }).retrieve()
                     .toBodilessEntity()
                     .block();
-            if (response != null)
-                LOGGER.info(String.format("Successfully called %s for resource ID: %s and status code: %s", PATCH_PAYMENT_CALL, paymentPatchRequestApi, response.getStatusCode()), DataMapHolder.getLogMap());
+            if (response != null) {
+                LOGGER.info(String.format("Successfully called %s for resource URI: %s and status code: %s",
+                                PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode()),
+                        DataMapHolder.getLogMap());
+            }
         } catch (WebClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {
@@ -119,7 +127,8 @@ public class PaymentsProcessedApiClient {
 
     private void loggingRequestValue(String paymentsPatchUri, PaymentPatchRequestApi paymentPatchRequestApi) {
         try {
-            LOGGER.debug(String.format("Initiating PATCH request for resource URI: %s and request %s", paymentsPatchUri, objectMapper.writeValueAsString(paymentPatchRequestApi)), DataMapHolder.getLogMap());
+            LOGGER.debug(String.format("Initiating PATCH request for resource URI: %s and request %s", paymentsPatchUri,
+                    objectMapper.writeValueAsString(paymentPatchRequestApi)), DataMapHolder.getLogMap());
         } catch (JsonProcessingException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         }
@@ -130,15 +139,21 @@ public class PaymentsProcessedApiClient {
         logData.put("payment_id", paymentId);
 
         if (skipGoneResource) {
-            LOGGER.info(String.format("SKIP_GONE_RESOURCE is true - checking if message should be skipped for Payment ID [%s]", paymentId), logData);
+            LOGGER.info(String.format(
+                    "SKIP_GONE_RESOURCE is true - checking if message should be skipped for Payment ID [%s]",
+                    paymentId), logData);
             if (skipGoneResourceId != null && !skipGoneResourceId.isEmpty() && !skipGoneResourceId.equals(paymentId)) {
-                LOGGER.info(String.format("SKIP_GONE_RESOURCE_ID [%s] does not match Payment ID [%s] - not skipping message", skipGoneResourceId, paymentId), logData);
+                LOGGER.info(String.format(
+                        "SKIP_GONE_RESOURCE_ID [%s] does not match Payment ID [%s] - not skipping message",
+                        skipGoneResourceId, paymentId), logData);
                 return false;
             }
-            LOGGER.info(String.format("Message for Payment ID [%s] meets criteria and will be skipped", paymentId), logData);
+            LOGGER.info(String.format("Message for Payment ID [%s] meets criteria and will be skipped", paymentId),
+                    logData);
             return true;
         }
-        LOGGER.info(String.format("SKIP_GONE_RESOURCE is false - not skipping message for Payment ID [%s]", paymentId), logData);
+        LOGGER.info(String.format("SKIP_GONE_RESOURCE is false - not skipping message for Payment ID [%s]", paymentId),
+                logData);
         return false;
     }
 

@@ -35,13 +35,15 @@ public class ResponseHandler {
         if (HttpStatus.BAD_REQUEST.value() == statusCode || HttpStatus.CONFLICT.value() == statusCode) {
             LOGGER.error(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
                     ex, DataMapHolder.getLogMap());
-            throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+            throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
+                    ex);
         } else {
             LOGGER.info(
                     String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode(), ex.getMessage(),
                             Arrays.toString(ex.getStackTrace())),
                     DataMapHolder.getLogMap());
-            throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+            throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
+                    ex);
         }
     }
 
@@ -50,13 +52,16 @@ public class ResponseHandler {
         if (HttpStatus.BAD_REQUEST.value() == statusCode || HttpStatus.CONFLICT.value() == statusCode) {
             LOGGER.error(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
                     ex, DataMapHolder.getLogMap());
-            throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+            throw new NonRetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
+                    ex);
         } else {
             LOGGER.info(
-                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode().value(), ex.getMessage(),
+                    String.format(API_INFO_RESPONSE_MESSAGE, apiCall, resourceUri, ex.getStatusCode().value(),
+                            ex.getMessage(),
                             Arrays.toString(ex.getStackTrace())),
                     DataMapHolder.getLogMap());
-            throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode), ex);
+            throw new RetryableException(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
+                    ex);
         }
     }
 

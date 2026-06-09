@@ -1,7 +1,17 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.patch;
+import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentPatchRequestApi;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.time.Duration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -12,17 +22,6 @@ import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 
-import java.time.Duration;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.patch;
-import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentPatchRequestApi;
-
 @WireMockTest(httpPort = 8080)
 class PaymentsProcessedApiClientWireMockTest {
 
@@ -31,8 +30,14 @@ class PaymentsProcessedApiClientWireMockTest {
     public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_8080 + PAYMENTS;
 
     private final PaymentsProcessedApiClient paymentsProcessedApiClient = new PaymentsProcessedApiClient(
-            null, new ResponseHandler(), new ObjectMapper(), WebClient.create(),
+            null, new ResponseHandler(), configuredMapper(), WebClient.create(),
             null, null, null);
+
+    private static ObjectMapper configuredMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.findAndRegisterModules();
+        return mapper;
+    }
 
     @Test
     void shouldHandleSuccessfulPatchRequest() {
@@ -118,7 +123,8 @@ class PaymentsProcessedApiClientWireMockTest {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
 
-        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(), new ObjectMapper(), webClient, null, null, null);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(),
+                configuredMapper(), webClient, null, null, null);
 
         // Act & Assert
         Assertions.assertThrows(Exception.class, () ->

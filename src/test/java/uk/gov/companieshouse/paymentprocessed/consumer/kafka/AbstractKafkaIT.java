@@ -35,11 +35,13 @@ abstract class AbstractKafkaIT {
     protected static final String CONSUMER_RETRY_TOPIC = "payment-processed-payment-processed-consumer-group-retry";
     protected static final String CONSUMER_ERROR_TOPIC = "payment-processed-payment-processed-consumer-group-error";
     protected static final String CONSUMER_INVALID_TOPIC = "payment-processed-payment-processed-consumer-group-invalid";
-    @Container
-    protected static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:latest");
 
-    protected KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
-    protected KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
+    @Container
+    protected static final ConfluentKafkaContainer kafka =
+            new ConfluentKafkaContainer("confluentinc/cp-kafka:7.6.1");
+
+    protected final KafkaConsumer<String, byte[]> testConsumer = testConsumer(kafka.getBootstrapServers());
+    protected final KafkaProducer<String, byte[]> testProducer = testProducer(kafka.getBootstrapServers());
 
     @Autowired
     protected TestConsumerAspect testConsumerAspect;
@@ -48,7 +50,7 @@ abstract class AbstractKafkaIT {
     static void props(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
-    
+
     @BeforeEach
     protected void setup() {
         testConsumerAspect.resetLatch();
@@ -76,7 +78,8 @@ abstract class AbstractKafkaIT {
                         ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false",
                         ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString()),
                 new StringDeserializer(), new ByteArrayDeserializer());
-        consumer.subscribe(List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC));
+        consumer.subscribe(
+                List.of(CONSUMER_MAIN_TOPIC, CONSUMER_RETRY_TOPIC, CONSUMER_ERROR_TOPIC, CONSUMER_INVALID_TOPIC));
         return consumer;
     }
 

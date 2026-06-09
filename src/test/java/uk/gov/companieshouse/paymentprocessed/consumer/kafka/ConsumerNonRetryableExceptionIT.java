@@ -59,7 +59,9 @@ class ConsumerNonRetryableExceptionIT extends AbstractKafkaIT {
         doThrow(NonRetryableException.class).when(paymentProcessedServiceRouter).route(any());
 
         // when
-        testProducer.send(new ProducerRecord<>(AbstractKafkaIT.CONSUMER_MAIN_TOPIC, 0, System.currentTimeMillis(), "key", outputStream.toByteArray()));
+        testProducer.send(
+                new ProducerRecord<>(AbstractKafkaIT.CONSUMER_MAIN_TOPIC, 0, System.currentTimeMillis(), "key",
+                        outputStream.toByteArray()));
         if (!testConsumerAspect.getLatch().await(5L, TimeUnit.SECONDS)) {
             fail("Timed out waiting for latch");
         }

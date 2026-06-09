@@ -51,6 +51,7 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.ge
 
 @ExtendWith(MockitoExtension.class)
 public class PaymentsProcessedApiClientTest {
+
     private static final String APPLICATION_MERGE_PATCH_JSON = "application/merge-patch+json";
     private static final String URL = "http://example.com/payments";
     @Mock
@@ -101,7 +102,6 @@ public class PaymentsProcessedApiClientTest {
     void shouldSendSuccessfulPatchRequest() {
         String paymentsPatchUri = URL;
         PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();
-
 
         when(webClient.patch()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
@@ -183,7 +183,6 @@ public class PaymentsProcessedApiClientTest {
                 .when(responseHandler)
                 .handle(anyString(), anyString(), any(WebClientResponseException.class));
 
-
         // Act & Assert
         NonRetryableException exception = Assertions.assertThrows(NonRetryableException.class, () ->
                 paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi)
@@ -263,7 +262,8 @@ public class PaymentsProcessedApiClientTest {
         PaymentsProcessedApiClient spyClient = spy(paymentsProcessedApiClient);
         spyClient.getPayment(RESOURCE_ID + "1");
         verify(spyClient, times(1)).checkSkipGoneResource(RESOURCE_ID + "1", true);
-        Assertions.assertFalse(spyClient.checkSkipGoneResource(RESOURCE_ID + "1", true), "Expected checkSkipGoneResource to return false");
+        Assertions.assertFalse(spyClient.checkSkipGoneResource(RESOURCE_ID + "1", true),
+                "Expected checkSkipGoneResource to return false");
     }
 
     @Test
@@ -305,7 +305,8 @@ public class PaymentsProcessedApiClientTest {
             paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
 
             ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass((Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
+                    ArgumentCaptor.forClass(
+                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
             verify(requestHeadersSpec).headers(captor.capture());
 
             // Verify the captured lambda
@@ -340,7 +341,8 @@ public class PaymentsProcessedApiClientTest {
             paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
 
             ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass((Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
+                    ArgumentCaptor.forClass(
+                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
             verify(requestHeadersSpec).headers(captor.capture());
 
             // Verify the captured lambda
@@ -376,7 +378,8 @@ public class PaymentsProcessedApiClientTest {
             paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
 
             ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass((Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
+                    ArgumentCaptor.forClass(
+                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
             verify(requestHeadersSpec).headers(captor.capture());
 
             // Verify the captured lambda

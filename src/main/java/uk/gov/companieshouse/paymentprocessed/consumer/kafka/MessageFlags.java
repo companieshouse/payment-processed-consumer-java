@@ -1,8 +1,7 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
 
 @Component
 public class MessageFlags {
