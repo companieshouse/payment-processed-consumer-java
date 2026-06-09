@@ -1,11 +1,9 @@
 # payment-processed-consumer-java
 
 The Payment-Processed-Consumer-Java is designed to process payment-related messages from a Kafka
-topic. It ensures that
-payment events are extracted and patched to several types of payments while adhering to security and
-business rules.
-This document provides a detailed design of the service, focusing on its architecture, components,
-and business logic.
+topic. It ensures that payment events are extracted and patched to several types of payments while
+adhering to security and business rules. This document provides a detailed design of the service,
+focusing on its architecture, components and business logic.
 
 ## Architecture
 
@@ -19,8 +17,11 @@ and business logic.
     - Used for publishing messages to retry or error topics in case of failures.
 
 3. **Payments API Integration**:
-    - Fetches payment session details using `private-api-sk' library.
-    - Uses SPRING 'Webclient' to Patch request.
+    - The consumer interacts with Payments API using two different approaches:
+        - `private-api-sk' library for getting payment session information.
+        - Spring's RestClient to make a payment patch request. This was chosen over the `private-api-sk`
+          library for patching because the requests don't follow a particular url structure.
+          Private-api-sdk also uses an encoding before sending request which causes url to be unexpected.
 
 4. **Resilience/Retry Handler**:
     - Manages transient errors and retries using Retry Topic and if still fails maintain a Error
@@ -59,8 +60,7 @@ The following sequence diagram illustrates the message processing flow:
 ### 5. Patching Request
 
 - The service checks if the payment details from payment session response is of type refund or
-- another type of Payments
-- refund then create a refund request patch it as refundRequest
+- another type of Payments refund then create a refund request patch it as refundRequest
 - Otherwise Proceed to Patch it as patchRequest.
 - **Error Handling**: If the API call fails:
     - if Response return Bad Request and Conflict then its Non-retryable.

@@ -1,421 +1,349 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.http.HttpHeaders;
-import com.google.api.client.http.HttpResponseException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
-import uk.gov.companieshouse.api.InternalApiClient;
-import uk.gov.companieshouse.api.error.ApiErrorResponseException;
-import uk.gov.companieshouse.api.handler.exception.URIValidationException;
-import uk.gov.companieshouse.api.handler.payments.PrivatePaymentResourceHandler;
-import uk.gov.companieshouse.api.handler.payments.request.PaymentGetPaymentSession;
-import uk.gov.companieshouse.api.http.HttpClient;
-import uk.gov.companieshouse.api.model.ApiResponse;
-import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
-import uk.gov.companieshouse.api.model.payment.PaymentResponse;
-import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
-import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
-import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
-import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
-
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentPatchRequestApi;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentResponse;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
+import java.util.function.Supplier;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import uk.gov.companieshouse.api.InternalApiClient;
+import uk.gov.companieshouse.api.error.ApiErrorResponseException;
+import uk.gov.companieshouse.api.handler.exception.URIValidationException;
+import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
+import uk.gov.companieshouse.api.model.payment.PaymentResponse;
+import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
+import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
+import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
 @ExtendWith(MockitoExtension.class)
-public class PaymentsProcessedApiClientTest {
+class PaymentsProcessedApiClientTest {
 
-    private static final String APPLICATION_MERGE_PATCH_JSON = "application/merge-patch+json";
-    private static final String URL = "http://example.com/payments";
-    @Mock
-    private Supplier<InternalApiClient> internalApiClientFactory;
-    @Mock
-    private InternalApiClient internalApiClient;
-    @Mock
-    private PrivatePaymentResourceHandler privatePaymentResourceHandler;
-    @Mock
-    HttpClient httpClient;
-    @Mock
-    private ObjectMapper objectMapper;
-    @Mock
-    private PaymentGetPaymentSession paymentGetPaymentSession;
-    @Mock
-    private ResponseHandler responseHandler;
-    @Mock
-    private WebClient webClient;
-    @Mock
-    private WebClient.RequestBodyUriSpec requestBodyUriSpec;
-    @Mock
-    private WebClient.RequestBodySpec requestBodySpec;
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersSpec;
-    @Mock
-    private WebClient.ResponseSpec responseSpec;
-    @Mock
-    private Mono<ResponseEntity<Void>> responseEntityMono;
-    @InjectMocks
-    private PaymentsProcessedApiClient paymentsProcessedApiClient;
-    private static final String RESOURCE_ID = "P9hl8PWQQrKRBk1Zmc";
+    private MockRestServiceServer server;
 
+    private org.springframework.web.client.RestClient restClient;
+
+    @BeforeEach
+    void setUp() {
+        RestClient.Builder builder = RestClient.builder().baseUrl("http://localhost:8080");
+        server = MockRestServiceServer.bindTo(builder).build();
+        this.restClient = builder.build();
+    }
 
     @Test
     void shouldSendSuccessfulGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenReturn(getPaymentResponse());
-        Optional<PaymentResponse> paymentResponse = paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        Assertions.assertTrue(paymentResponse.isPresent());
-        Assertions.assertEquals(TestUtils.RESOURCE_LINK, paymentResponse.get().getLinks().getResource());
-        verify(privatePaymentResourceHandler, times(1)).getPaymentSession("/payments/" + RESOURCE_ID);
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
+
+        PaymentResponse expected = TestUtils.getPaymentResponse().getData();
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute().getData())
+                .thenReturn(expected);
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                mock(ResponseHandler.class), new ObjectMapper(), null,
+                "http://payments", null, false);
+
+        clearInvocations(mockInternal.privatePayment());
+        Optional<PaymentResponse> result = client.getPayment("123");
+        assertThat(result).isPresent().contains(expected);
+        assertThat(result.get().getLinks().getResource()).isEqualTo(TestUtils.RESOURCE_LINK);
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
     }
 
     @Test
     void shouldSendSuccessfulPatchRequest() {
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = new PaymentPatchRequestApi();
 
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(header("Content-Type", "application/merge-patch+json"))
+                .andRespond(withStatus(HttpStatus.OK));
 
-        paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
 
-        verify(webClient, times(1)).patch();
-        verify(requestBodyUriSpec, times(1)).uri(paymentsPatchUri);
-        verify(requestBodySpec, times(1)).contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON));
-        verify(requestBodySpec, times(1)).bodyValue(paymentPatchRequestApi);
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
+        server.verify();
     }
-
 
     @Test
     void shouldHandleApiErrorExceptionWhenSendingGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        Class<ApiErrorResponseException> exceptionClass = ApiErrorResponseException.class;
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenThrow(ApiErrorResponseException.class);
-        paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        verify(responseHandler).handle(anyString(), anyString(), any(exceptionClass));
-        verify(privatePaymentResourceHandler, times(1)).getPaymentSession("/payments/" + RESOURCE_ID);
-    }
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
 
-    @Test
-    void shouldHandleRetryableExceptionWhenSendingPatchRequest() {
-        // Arrange
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        ApiErrorResponseException apiEx = mock(ApiErrorResponseException.class);
+        when(apiEx.getStatusCode()).thenReturn(HttpStatus.BAD_REQUEST.value());
 
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenThrow(new RetryableException("Error response calling Patch Payment"));
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute()).thenThrow(apiEx);
 
-        // Act & Assert
-        RetryableException exception = Assertions.assertThrows(RetryableException.class, () ->
-                paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi)
-        );
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                handler, new ObjectMapper(), null,
+                "http://payments", null, false);
 
-        // Verify
-        Assertions.assertTrue(exception.getMessage().contains("Error response calling Patch Payment"));
-        verify(webClient, times(1)).patch();
-        verify(requestBodyUriSpec, times(1)).uri(paymentsPatchUri);
-        verify(requestBodySpec, times(1)).contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON));
-        verify(requestBodySpec, times(1)).bodyValue(paymentPatchRequestApi);
-    }
+        clearInvocations(mockInternal.privatePayment());
+        client.getPayment("123");
 
-    @Test
-    void shouldHandleNonRetryableExceptionWhenSendingPatchRequest() {
-        // Arrange
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
-
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenThrow(new WebClientResponseException(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                null,
-                null,
-                null
-        ));
-        doThrow(new NonRetryableException("Mocked NonRetryableException"))
-                .when(responseHandler)
-                .handle(anyString(), anyString(), any(WebClientResponseException.class));
-
-        // Act & Assert
-        NonRetryableException exception = Assertions.assertThrows(NonRetryableException.class, () ->
-                paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi)
-        );
-
-        // Verify
-        Assertions.assertTrue(exception.getMessage().contains("Mocked NonRetryableException"));
-        verify(webClient, times(1)).patch();
-        verify(requestBodyUriSpec, times(1)).uri(paymentsPatchUri);
-        verify(requestBodySpec, times(1)).contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON));
-        verify(requestBodySpec, times(1)).bodyValue(paymentPatchRequestApi);
+        verify(handler).handle("GET Payment", "123", apiEx);
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
     }
 
     @Test
     void shouldHandleURIValidationExceptionWhenSendingGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        Class<URIValidationException> uriValidationException = URIValidationException.class;
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenThrow(uriValidationException);
-        paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        verify(responseHandler).handle(anyString(), any(uriValidationException));
-        verify(privatePaymentResourceHandler, times(1)).getPaymentSession("/payments/" + RESOURCE_ID);
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
+
+        URIValidationException uriEx = mock(URIValidationException.class);
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute()).thenThrow(uriEx);
+
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                handler, new ObjectMapper(), null,
+                "http://payments", null, false);
+
+        clearInvocations(mockInternal.privatePayment());
+        client.getPayment("123");
+
+        verify(handler).handle("GET Payment", uriEx);
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
     }
 
     @Test
     void shouldHandleJsonProcessingExceptionWhenSendingGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenReturn(getPaymentResponse());
-        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
-        Optional<PaymentResponse> response = paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        // Assert
-        Assertions.assertTrue(response.isPresent());
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
+
+        PaymentResponse resp = new PaymentResponse();
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute().getData())
+                .thenReturn(resp);
+
+        ObjectMapper mockMapper = mock(ObjectMapper.class);
+        JsonProcessingException jsonEx = mock(JsonProcessingException.class);
+        when(mockMapper.writeValueAsString(any())).thenThrow(jsonEx);
+
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                handler, mockMapper, null,
+                "http://payments", null, false);
+
+        clearInvocations(mockInternal.privatePayment());
+        Optional<PaymentResponse> result = client.getPayment("123");
+
+        assertThat(result).isPresent().contains(resp);
+        verify(handler).handle("GET Payment", "123", jsonEx);
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
     }
 
     @Test
     void shouldHandleGoneResourceWhenSendingGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        HttpResponseException.Builder builder = new HttpResponseException.Builder(
-                HttpStatus.GONE.value(),
-                "Resource Gone",
-                new HttpHeaders() // Ensure headers are not null
-        );
-        ApiErrorResponseException apiErrorResponseException = new ApiErrorResponseException(builder);
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenThrow(apiErrorResponseException);
-        ReflectionTestUtils.setField(paymentsProcessedApiClient, "skipGoneResource", true
-        );
-        ReflectionTestUtils.setField(paymentsProcessedApiClient, "skipGoneResourceId", RESOURCE_ID
-        );
-        paymentsProcessedApiClient.getPayment(RESOURCE_ID);
-        verify(privatePaymentResourceHandler, times(1)).getPaymentSession("/payments/" + RESOURCE_ID);
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
+
+        ApiErrorResponseException goneEx = mock(ApiErrorResponseException.class);
+        when(goneEx.getStatusCode()).thenReturn(HttpStatus.GONE.value());
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute()).thenThrow(goneEx);
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                mock(ResponseHandler.class), new ObjectMapper(), null,
+                "http://payments", "123", true);
+
+        clearInvocations(mockInternal.privatePayment());
+        Optional<PaymentResponse> result = client.getPayment("123");
+        assertThat(result).isEmpty();
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
     }
 
     @Test
     void shouldHandleGoneResourceDifferentPaymentIdWhenSendingGetRequest() throws Exception {
-        when(internalApiClientFactory.get()).thenReturn(internalApiClient);
-        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
-        when(internalApiClient.privatePayment()).thenReturn(privatePaymentResourceHandler);
-        HttpResponseException.Builder builder = new HttpResponseException.Builder(
-                HttpStatus.GONE.value(),
-                "Resource Gone",
-                new HttpHeaders() // Ensure headers are not null
-        );
-        ApiErrorResponseException apiErrorResponseException = new ApiErrorResponseException(builder);
-        when(privatePaymentResourceHandler.getPaymentSession(anyString())).thenReturn(paymentGetPaymentSession);
-        when(paymentGetPaymentSession.execute()).thenThrow(apiErrorResponseException);
-        ReflectionTestUtils.setField(paymentsProcessedApiClient, "skipGoneResource", true
-        );
-        ReflectionTestUtils.setField(paymentsProcessedApiClient, "skipGoneResourceId", RESOURCE_ID);
-        PaymentsProcessedApiClient spyClient = spy(paymentsProcessedApiClient);
-        spyClient.getPayment(RESOURCE_ID + "1");
-        verify(spyClient, times(1)).checkSkipGoneResource(RESOURCE_ID + "1", true);
-        Assertions.assertFalse(spyClient.checkSkipGoneResource(RESOURCE_ID + "1", true),
-                "Expected checkSkipGoneResource to return false");
+        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
+        Supplier<InternalApiClient> supplier = () -> mockInternal;
+
+        ApiErrorResponseException goneEx = mock(ApiErrorResponseException.class);
+        when(goneEx.getStatusCode()).thenReturn(HttpStatus.GONE.value());
+        when(mockInternal.privatePayment().getPaymentSession("/payments/123").execute()).thenThrow(goneEx);
+
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(supplier,
+                handler, new ObjectMapper(), null,
+                "http://payments", "DIFFERENT", true);
+
+        clearInvocations(mockInternal.privatePayment());
+        Optional<PaymentResponse> result = client.getPayment("123");
+        assertThat(result).isEmpty();
+        verify(handler).handle("GET Payment", "123", goneEx);
+        verify(mockInternal.privatePayment(), times(1)).getPaymentSession("/payments/123");
+    }
+
+    @Test
+    void shouldHandleRetryableExceptionWhenSendingPatchRequest() {
+        RestClient mockRest = mock(RestClient.class, RETURNS_DEEP_STUBS);
+        when(mockRest.patch()
+                .uri(anyString())
+                .contentType(any())
+                .body(any(PaymentPatchRequestApi.class))
+                .headers(any())
+                .retrieve()
+                .toBodilessEntity()).thenThrow(new RuntimeException("boom"));
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), mockRest,
+                "http://payments", null, false);
+
+        uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException exception =
+                assertThrows(uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException.class,
+                        () -> client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi()));
+        assertThat(exception).hasMessageContaining("Error response calling Patch Payment");
     }
 
     @Test
     void shouldThrowRetryableExceptionForAnyNonWebclientExceptionPaymentsPatchUri() {
-        // Arrange
-        String invalidPaymentsPatchUri = "invalid_uri";
-        PaymentPatchRequestApi paymentPatchRequestApi = mock(PaymentPatchRequestApi.class);
+        RestClient mockRest = mock(RestClient.class);
+        when(mockRest.patch()).thenThrow(new RuntimeException("boom"));
 
-        // Mocking the WebClient chain to simulate an error response
-        when(webClient.patch()).thenThrow(new IllegalArgumentException("Invalid URI"));
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), mockRest,
+                "http://payments", null, false);
 
-        // Act & Assert
-        Assertions.assertThrows(RetryableException.class, () ->
-                paymentsProcessedApiClient.patchPayment(invalidPaymentsPatchUri, paymentPatchRequestApi)
-        );
+        assertThrows(uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException.class,
+                () -> client.patchPayment("/payments/1", new PaymentPatchRequestApi()));
+    }
+
+    @Test
+    void shouldHandleNonRetryableExceptionWhenSendingPatchRequest() {
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(header("Content-Type", "application/merge-patch+json"))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        ResponseHandler handler = mock(ResponseHandler.class);
+        doThrow(new NonRetryableException("Mocked NonRetryableException"))
+                .when(handler)
+                .handle(eq("Patch Payment"),
+                        eq("http://localhost:8080/payments/1"),
+                        org.mockito.ArgumentMatchers.any(RestClientResponseException.class));
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                handler, configuredMapper(), restClient,
+                "http://payments", null, false);
+
+        NonRetryableException exception = assertThrows(NonRetryableException.class,
+                () -> client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi()));
+        assertThat(exception).hasMessageContaining("Mocked NonRetryableException");
+
+        server.verify();
+        verify(handler).handle(eq("Patch Payment"),
+                eq("http://localhost:8080/payments/1"),
+                any(RestClientResponseException.class));
     }
 
     @Test
     void shouldAddXRequestIdHeaderWhenRequestIdIsValid() {
-        // Arrange
-        String validRequestId = "12345";
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(header("x-request-id", "req-1"))
+                .andRespond(withStatus(HttpStatus.OK));
 
-        // Mocking the WebClient chain to simulate an error response
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
 
-        // Mock DataMapHolder to return a valid requestId
-        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
-            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(validRequestId);
+        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise("req-1");
 
-            // Act
-            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
-            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass(
-                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
-            verify(requestHeadersSpec).headers(captor.capture());
-
-            // Verify the captured lambda
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            captor.getValue().accept(headers);
-            Assertions.assertTrue(headers.containsHeader("x-request-id"));
-            Assertions.assertEquals(validRequestId, headers.getFirst("x-request-id"));
-
-        }
+        server.verify();
+        DataMapHolder.clear();
     }
 
     @Test
     void shouldAddXRequestIdHeaderWhenRequestIdIsNull() {
-        // Arrange
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
-        // Mocking the WebClient chain to simulate an error response
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(headerDoesNotExist("x-request-id"))
+                .andRespond(withStatus(HttpStatus.OK));
 
-        // Mock DataMapHolder to return a valid requestId
-        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
-            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(null);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
 
-            // Act
-            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise(null);
 
-            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass(
-                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
-            verify(requestHeadersSpec).headers(captor.capture());
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
-            // Verify the captured lambda
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            captor.getValue().accept(headers);
-            Assertions.assertFalse(headers.containsHeader("x-request-id"));
-            Assertions.assertNull(headers.getFirst("x-request-id"));
-
-        }
+        server.verify();
+        DataMapHolder.clear();
     }
 
     @Test
     void shouldAddXRequestIdHeaderWhenRequestIdIsBlank() {
-        // Arrange
-        String validRequestId = "     ";
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
 
-        // Mocking the WebClient chain to simulate an error response
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(headerDoesNotExist("x-request-id"))
+                .andRespond(withStatus(HttpStatus.OK));
 
-        // Mock DataMapHolder to return a valid requestId
-        try (MockedStatic<DataMapHolder> mockedDataMapHolder = mockStatic(DataMapHolder.class)) {
-            mockedDataMapHolder.when(DataMapHolder::getRequestId).thenReturn(validRequestId);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
 
-            // Act
-            paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise("   ");
 
-            ArgumentCaptor<Consumer<org.springframework.http.HttpHeaders>> captor =
-                    ArgumentCaptor.forClass(
-                            (Class<Consumer<org.springframework.http.HttpHeaders>>) (Class<?>) Consumer.class);
-            verify(requestHeadersSpec).headers(captor.capture());
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
-            // Verify the captured lambda
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            captor.getValue().accept(headers);
-            Assertions.assertFalse(headers.containsHeader("x-request-id"));
-            Assertions.assertNull(headers.getFirst("x-request-id"));
-
-        }
+        server.verify();
+        DataMapHolder.clear();
     }
 
     @Test
-    void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws JsonProcessingException {
-        // Arrange
-        String paymentsPatchUri = URL;
-        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
-        JsonProcessingException jsonProcessingException = mock(JsonProcessingException.class);
-        when(webClient.patch()).thenReturn(requestBodyUriSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(requestHeadersSpec.headers(any())).thenReturn(requestHeadersSpec); // Mock the headers method
-        when(requestBodyUriSpec.uri(paymentsPatchUri)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(paymentPatchRequestApi)).thenReturn(requestHeadersSpec);
-        when(responseSpec.toBodilessEntity()).thenReturn(responseEntityMono);
+    void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws Exception {
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andRespond(withStatus(HttpStatus.OK));
 
-        // Mocking the ObjectMapper to throw JsonProcessingException
-        when(objectMapper.writeValueAsString(paymentPatchRequestApi)).thenThrow(jsonProcessingException);
+        ObjectMapper mockMapper = mock(ObjectMapper.class);
+        JsonProcessingException jsonEx = mock(JsonProcessingException.class);
+        when(mockMapper.writeValueAsString(any())).thenThrow(jsonEx);
 
-        // Act
-        paymentsProcessedApiClient.patchPayment(paymentsPatchUri, paymentPatchRequestApi);
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                handler, mockMapper, restClient,
+                "http://payments", null, false);
 
-        // Assert
-        verify(responseHandler).handle(any(), any(), any(JsonProcessingException.class));
+        client.patchPayment("/payments/1", new PaymentPatchRequestApi());
+
+        server.verify();
+        verify(handler).handle("Patch Payment", "/payments/1", jsonEx);
     }
 
-    public static <T> ApiResponse<T> getAPIResponse(T data) {
-        return new ApiResponse<>(HttpStatus.OK.value(), null, data);
+    private static ObjectMapper configuredMapper() {
+        ObjectMapper m = new ObjectMapper();
+        m.findAndRegisterModules();
+        return m;
     }
+
 }

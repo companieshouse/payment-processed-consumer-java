@@ -1,9 +1,12 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Arrays;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClientResponseException;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.logging.Logger;
@@ -11,10 +14,6 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
-
-import java.util.Arrays;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 @Component
 public class ResponseHandler {
@@ -47,7 +46,7 @@ public class ResponseHandler {
         }
     }
 
-    public void handle(String apiCall, String resourceUri, WebClientResponseException ex) {
+    public void handle(String apiCall, String resourceUri, RestClientResponseException ex) {
         final int statusCode = ex.getStatusCode().value();
         if (HttpStatus.BAD_REQUEST.value() == statusCode || HttpStatus.CONFLICT.value() == statusCode) {
             LOGGER.error(String.format(API_ERROR_RESPONSE_MESSAGE, apiCall, resourceUri, statusCode),
@@ -64,7 +63,6 @@ public class ResponseHandler {
                     ex);
         }
     }
-
 
     public void handle(String apiCall, String resourceUri, JsonProcessingException ex) {
         LOGGER.error(String.format(JSON_PARSE_EXCEPTION_MESSAGE, apiCall, resourceUri),

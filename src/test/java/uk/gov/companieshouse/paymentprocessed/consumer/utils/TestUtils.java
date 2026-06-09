@@ -1,11 +1,10 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.utils;
 
-import static uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClientTest.getAPIResponse;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.payment.PaymentLinks;
@@ -110,5 +109,8 @@ public class TestUtils {
         paymentResponse.setRefunds(refunds);
 
         return getAPIResponse(paymentResponse);
+    }
+    private static <T> ApiResponse<T> getAPIResponse(T data) {
+        return new ApiResponse<>(HttpStatus.OK.value(), null, data);
     }
 }
