@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -25,6 +24,8 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
+import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
@@ -45,7 +47,13 @@ class PaymentsProcessedApiClientTest {
 
     private MockRestServiceServer server;
 
-    private org.springframework.web.client.RestClient restClient;
+    private RestClient restClient;
+
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private RestClient mockRest;
+
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    private InternalApiClient mockInternal;
 
     @BeforeEach
     void setUp() {
@@ -56,7 +64,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldSendSuccessfulGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         PaymentResponse expected = TestUtils.getPaymentResponse().getData();
@@ -92,7 +99,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleApiErrorExceptionWhenSendingGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         ApiErrorResponseException apiEx = mock(ApiErrorResponseException.class);
@@ -114,7 +120,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleURIValidationExceptionWhenSendingGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         URIValidationException uriEx = mock(URIValidationException.class);
@@ -134,7 +139,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleJsonProcessingExceptionWhenSendingGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         PaymentResponse resp = new PaymentResponse();
@@ -160,7 +164,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleGoneResourceWhenSendingGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         ApiErrorResponseException goneEx = mock(ApiErrorResponseException.class);
@@ -179,7 +182,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleGoneResourceDifferentPaymentIdWhenSendingGetRequest() throws Exception {
-        InternalApiClient mockInternal = mock(InternalApiClient.class, RETURNS_DEEP_STUBS);
         Supplier<InternalApiClient> supplier = () -> mockInternal;
 
         ApiErrorResponseException goneEx = mock(ApiErrorResponseException.class);
@@ -200,7 +202,6 @@ class PaymentsProcessedApiClientTest {
 
     @Test
     void shouldHandleRetryableExceptionWhenSendingPatchRequest() {
-        RestClient mockRest = mock(RestClient.class, RETURNS_DEEP_STUBS);
         when(mockRest.patch()
                 .uri(anyString())
                 .contentType(any())
@@ -213,23 +214,23 @@ class PaymentsProcessedApiClientTest {
                 mock(ResponseHandler.class), configuredMapper(), mockRest,
                 "http://payments", null, false);
 
-        uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException exception =
-                assertThrows(uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException.class,
-                        () -> client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi()));
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi();
+        RetryableException exception = assertThrows(RetryableException.class,
+                () -> client.patchPayment("http://localhost:8080/payments/1", patchRequest));
         assertThat(exception).hasMessageContaining("Error response calling Patch Payment");
     }
 
     @Test
     void shouldThrowRetryableExceptionForAnyNonRestClientExceptionPaymentsPatchUri() {
-        RestClient mockRest = mock(RestClient.class);
         when(mockRest.patch()).thenThrow(new RuntimeException("boom"));
 
         PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
                 mock(ResponseHandler.class), configuredMapper(), mockRest,
                 "http://payments", null, false);
 
-        assertThrows(uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException.class,
-                () -> client.patchPayment("/payments/1", new PaymentPatchRequestApi()));
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi();
+        assertThrows(RetryableException.class,
+                () -> client.patchPayment("/payments/1", patchRequest));
     }
 
     @Test
@@ -272,7 +273,7 @@ class PaymentsProcessedApiClientTest {
                 mock(ResponseHandler.class), configuredMapper(), restClient,
                 "http://payments", null, false);
 
-        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise("req-1");
+        DataMapHolder.initialise("req-1");
 
         client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
@@ -292,7 +293,7 @@ class PaymentsProcessedApiClientTest {
                 mock(ResponseHandler.class), configuredMapper(), restClient,
                 "http://payments", null, false);
 
-        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise(null);
+        DataMapHolder.initialise(null);
 
         client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
@@ -312,7 +313,7 @@ class PaymentsProcessedApiClientTest {
                 mock(ResponseHandler.class), configuredMapper(), restClient,
                 "http://payments", null, false);
 
-        uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder.initialise("   ");
+        DataMapHolder.initialise("   ");
 
         client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
@@ -342,9 +343,9 @@ class PaymentsProcessedApiClientTest {
     }
 
     private static ObjectMapper configuredMapper() {
-        ObjectMapper m = new ObjectMapper();
-        m.findAndRegisterModules();
-        return m;
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        return objectMapper;
     }
 
 }

@@ -3,9 +3,10 @@
     <artifactId>payment-processed-consumer-java</artifactId>
     <version>unversioned</version>
     <name>payment-processed-consumer-java</name>
-    <description>This service will consume from the payment-processed kafka topic. Messages
-    consumed will be processed
-  </description>
+    <description>
+        This service will consume from the payment-processed kafka topic.
+        Messages consumed will be processed
+    </description>
     <parent>
         <groupId>uk.gov.companieshouse</groupId>
         <artifactId>companies-house-parent</artifactId>
@@ -24,15 +25,13 @@
         <api-sdk-java.version>6.6.23</api-sdk-java.version>
         <ch-dependency-bom.version>0.1.7</ch-dependency-bom.version>
         <ch-test-bom.version>0.1.7</ch-test-bom.version>
-        <private-api-sdk-java.version>6.0.25</private-api-sdk-java.version>
+        <private-api-sdk-java.version>6.0.26</private-api-sdk-java.version>
         <!--External-->
         <avro.version>1.12.1</avro.version>
         <guava.version>33.6.0-jre</guava.version>
         <jackson-annotations.version>2.21</jackson-annotations.version>
-        <jackson-core.version>3.1.4</jackson-core.version>
         <kafka-clients.version>4.2.1</kafka-clients.version>
         <netty-bom.version>4.2.15.Final</netty-bom.version>
-        <reactor-core.version>3.8.6</reactor-core.version>
         <reactor-netty-http.version>1.3.6</reactor-netty-http.version>
         <testcontainers-bom.version>1.21.4</testcontainers-bom.version>
         <tomcat-embed-core.version>11.0.22</tomcat-embed-core.version>
@@ -97,12 +96,6 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>tools.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson-core.version}</version>
-                <scope>compile</scope>
-            </dependency>
             <!--CVE-2026-41284, CVE-2026-42498, CVE-2026-43514-->
             <dependency>
                 <groupId>org.apache.tomcat.embed</groupId>
@@ -123,16 +116,6 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>api-sdk-java</artifactId>
             <version>${api-sdk-java.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -142,16 +125,6 @@
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>private-api-sdk-java</artifactId>
             <version>${private-api-sdk-java.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -160,10 +133,6 @@
                 <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.datatype</groupId>
-                    <artifactId>jackson-datatype-jsr310</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -181,11 +150,6 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-            <version>${reactor-core.version}</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor.netty</groupId>
@@ -227,20 +191,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>tools.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <!--Test-->
         <dependency>
@@ -288,6 +238,22 @@
             <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock-standalone.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <build>
