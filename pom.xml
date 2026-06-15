@@ -22,9 +22,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!--Companies House-->
         <api-sdk-java.version>6.6.23</api-sdk-java.version>
-        <ch-dependency-bom.version>0.1.6</ch-dependency-bom.version>
-        <ch-test-bom.version>0.1.6</ch-test-bom.version>
-        <private-api-sdk-java.version>6.0.24</private-api-sdk-java.version>
+        <ch-dependency-bom.version>0.1.7</ch-dependency-bom.version>
+        <ch-test-bom.version>0.1.7</ch-test-bom.version>
+        <private-api-sdk-java.version>6.0.25</private-api-sdk-java.version>
         <!--External-->
         <avro.version>1.12.1</avro.version>
         <guava.version>33.6.0-jre</guava.version>
@@ -45,7 +45,7 @@
         <maven-dependency-plugin.version>3.10.0</maven-dependency-plugin.version>
         <maven-failsafe-plugin.version>3.5.6</maven-failsafe-plugin.version>
         <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
-        <spring.boot.version>4.0.6</spring.boot.version>
+        <spring.boot.version>4.0.7</spring.boot.version>
     </properties>
     <dependencyManagement>
         <dependencies>
