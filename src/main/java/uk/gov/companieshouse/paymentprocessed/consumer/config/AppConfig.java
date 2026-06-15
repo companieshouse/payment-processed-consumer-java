@@ -3,12 +3,15 @@ package uk.gov.companieshouse.paymentprocessed.consumer.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.Duration;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import reactor.netty.http.client.HttpClient;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.http.ApiKeyHttpClient;
 
@@ -39,12 +42,12 @@ public class AppConfig {
 
     @Bean
     public RestClient restClient() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(timeoutMilliseconds);
-        requestFactory.setReadTimeout(timeoutMilliseconds);
+        HttpClient httpClient = HttpClient.create()
+                .responseTimeout(Duration.ofMillis(timeoutMilliseconds));
+
         return RestClient.builder()
                 .baseUrl(paymentsApiUrl)
-                .requestFactory(requestFactory)
+                .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
                 .defaultHeader("Authorization", chsInternalApiKey)
                 .build();
     }
