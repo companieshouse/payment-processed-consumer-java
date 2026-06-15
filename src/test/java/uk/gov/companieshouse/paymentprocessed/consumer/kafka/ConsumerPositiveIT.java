@@ -38,9 +38,7 @@ import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.GE
 import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.RESOURCE_LINK;
 import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentProcessed;
 
-@SpringBootTest(properties = {
-        "payments.api.url=http://localhost:8889",
-})
+@SpringBootTest(properties = {"payments.api.url=http://localhost:8889"})
 class ConsumerPositiveIT extends AbstractKafkaIT {
 
     private static final String PAYMENT_RESOURCE_PARAMS = "/paymentResource?subNumber=000-016&formType=1123";

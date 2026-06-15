@@ -110,7 +110,7 @@ public class PaymentsProcessedApiClient {
                     })
                     .retrieve()
                     .toBodilessEntity();
-            if (response.getStatusCode().value() == HttpStatus.OK.value()) {
+            if (response.getStatusCode().is2xxSuccessful()) {
                 LOGGER.info(String.format("Successfully called %s for resource URI: %s and status code: %s",
                                 PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode().value()),
                         DataMapHolder.getLogMap());

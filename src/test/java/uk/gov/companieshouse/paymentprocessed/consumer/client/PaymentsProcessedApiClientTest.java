@@ -220,7 +220,7 @@ class PaymentsProcessedApiClientTest {
     }
 
     @Test
-    void shouldThrowRetryableExceptionForAnyNonWebclientExceptionPaymentsPatchUri() {
+    void shouldThrowRetryableExceptionForAnyNonRestClientExceptionPaymentsPatchUri() {
         RestClient mockRest = mock(RestClient.class);
         when(mockRest.patch()).thenThrow(new RuntimeException("boom"));
 

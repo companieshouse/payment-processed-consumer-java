@@ -25,9 +25,9 @@ import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableExcept
 @WireMockTest(httpPort = 9843)
 class PaymentsProcessedApiClientWireMockTest {
 
-    public static final String HTTP_LOCALHOST_8080 = "http://localhost:9843";
+    public static final String HTTP_LOCALHOST_9843 = "http://localhost:9843";
     public static final String PAYMENTS = "/payments";
-    public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_8080 + PAYMENTS;
+    public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_9843 + PAYMENTS;
 
     private final PaymentsProcessedApiClient paymentsProcessedApiClient = new PaymentsProcessedApiClient(
             null, new ResponseHandler(), configuredMapper(), RestClient.create(),
@@ -114,11 +114,10 @@ class PaymentsProcessedApiClientWireMockTest {
         stubFor(patch(urlEqualTo(PAYMENTS))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
-                        .withFixedDelay(7000))); // 7-second delay
+                        .withFixedDelay(7000)));
 
-        // Configure ResClient with a timeout
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(6)); // 6-second timeout
+                .responseTimeout(Duration.ofSeconds(6));
         RestClient restClient = RestClient.builder()
                 .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
                 .build();
