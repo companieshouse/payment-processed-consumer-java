@@ -250,8 +250,9 @@ class PaymentsProcessedApiClientTest {
                 handler, configuredMapper(), restClient,
                 "http://payments", null, false);
 
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi();
         NonRetryableException exception = assertThrows(NonRetryableException.class,
-                () -> client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi()));
+                () -> client.patchPayment("http://localhost:8080/payments/1", patchRequest));
         assertThat(exception).hasMessageContaining("Mocked NonRetryableException");
 
         server.verify();
