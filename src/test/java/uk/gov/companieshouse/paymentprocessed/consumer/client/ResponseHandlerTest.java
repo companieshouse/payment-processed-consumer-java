@@ -1,7 +1,10 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -14,10 +17,6 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
-
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class ResponseHandlerTest {

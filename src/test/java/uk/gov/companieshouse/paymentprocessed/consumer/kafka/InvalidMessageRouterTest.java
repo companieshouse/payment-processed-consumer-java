@@ -1,5 +1,16 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.kafka.support.KafkaHeaders.EXCEPTION_MESSAGE;
+import static org.springframework.kafka.support.KafkaHeaders.ORIGINAL_OFFSET;
+import static org.springframework.kafka.support.KafkaHeaders.ORIGINAL_PARTITION;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,18 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import payments.payment_processed;
-
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.kafka.support.KafkaHeaders.EXCEPTION_MESSAGE;
-import static org.springframework.kafka.support.KafkaHeaders.ORIGINAL_OFFSET;
-import static org.springframework.kafka.support.KafkaHeaders.ORIGINAL_PARTITION;
 
 
 @ExtendWith(MockitoExtension.class)

@@ -2,6 +2,10 @@ package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.google.common.collect.Iterables;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -21,11 +25,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import uk.gov.companieshouse.paymentprocessed.consumer.serdes.KafkaPayloadDeserialiser;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Testcontainers
 @WireMockTest(httpPort = 8889)

@@ -1,5 +1,11 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Properties;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -16,13 +22,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.companieshouse.paymentprocessed.consumer.service.PaymentProcessedServiceRouter;
-
-import java.io.ByteArrayOutputStream;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 class ConsumerInvalidPayloadExceptionIT extends AbstractKafkaIT {

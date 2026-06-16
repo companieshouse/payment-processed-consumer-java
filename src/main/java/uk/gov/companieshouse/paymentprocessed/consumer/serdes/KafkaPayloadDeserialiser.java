@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.serdes;
 
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
+import java.io.IOException;
 import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
@@ -10,10 +13,6 @@ import payments.payment_processed;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.InvalidPayloadException;
-
-import java.io.IOException;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 public class KafkaPayloadDeserialiser implements Deserializer<payment_processed> {
 
