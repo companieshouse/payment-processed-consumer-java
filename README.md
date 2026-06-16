@@ -19,9 +19,11 @@ focusing on its architecture, components and business logic.
 3. **Payments API Integration**:
     - The consumer interacts with Payments API using two different approaches:
         - `private-api-sdk' library for getting payment session information.
-        - Spring's RestClient to make a payment patch request. This was chosen over the `private-api-sk`
+        - Spring's RestClient to make a payment patch request. This was chosen over the
+          `private-api-sk`
           library for patching because the requests don't follow a particular url structure.
-          Private-api-sdk also uses an encoding before sending request which causes url to be unexpected.
+          Private-api-sdk also uses an encoding before sending request which causes url to be
+          unexpected.
 
 4. **Resilience/Retry Handler**:
     - Manages transient errors and retries using Retry Topic and if still fails maintain a Error

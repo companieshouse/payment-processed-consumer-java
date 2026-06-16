@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>payment-processed-consumer-java</artifactId>
     <version>unversioned</version>
@@ -286,13 +288,14 @@
                 <configuration>
                     <containerizingMode>packaged</containerizingMode>
                     <from>
-                        <image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-runtime-21:latest
-            </image>
+                        <image>
+                            416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-runtime-21:latest
+                        </image>
                     </from>
                     <to>
                         <image>
-              416670754337.dkr.ecr.eu-west-2.amazonaws.com/payment-processed-consumer-java:latest
-            </image>
+                            416670754337.dkr.ecr.eu-west-2.amazonaws.com/payment-processed-consumer-java:latest
+                        </image>
                     </to>
                 </configuration>
             </plugin>
