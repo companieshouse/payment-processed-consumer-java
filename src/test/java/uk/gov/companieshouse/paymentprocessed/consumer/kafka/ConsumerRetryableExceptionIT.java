@@ -1,6 +1,16 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -17,17 +27,6 @@ import payments.payment_processed;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.service.PaymentProcessedServiceRouter;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 
 @SpringBootTest
 class ConsumerRetryableExceptionIT extends AbstractKafkaIT {

@@ -1,5 +1,15 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.logging;
 
+import static org.springframework.kafka.retrytopic.RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS;
+import static org.springframework.kafka.support.KafkaHeaders.OFFSET;
+import static org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION;
+import static org.springframework.kafka.support.KafkaHeaders.RECEIVED_TOPIC;
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,17 +22,6 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
-
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.springframework.kafka.retrytopic.RetryTopicHeaders.DEFAULT_HEADER_ATTEMPTS;
-import static org.springframework.kafka.support.KafkaHeaders.OFFSET;
-import static org.springframework.kafka.support.KafkaHeaders.RECEIVED_PARTITION;
-import static org.springframework.kafka.support.KafkaHeaders.RECEIVED_TOPIC;
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 @Component
 @Aspect

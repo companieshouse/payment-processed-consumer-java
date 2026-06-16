@@ -1,5 +1,14 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -17,16 +26,6 @@ import payments.payment_processed;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.service.PaymentProcessedServiceRouter;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 class ConsumerNonRetryableExceptionIT extends AbstractKafkaIT {

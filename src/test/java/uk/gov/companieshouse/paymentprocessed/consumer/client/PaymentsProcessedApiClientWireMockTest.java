@@ -15,22 +15,22 @@ import java.time.Duration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 import reactor.netty.http.client.HttpClient;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 
-@WireMockTest(httpPort = 8080)
+@WireMockTest(httpPort = 9843)
 class PaymentsProcessedApiClientWireMockTest {
 
-    public static final String HTTP_LOCALHOST_8080 = "http://localhost:8080";
+    public static final String HTTP_LOCALHOST_9843 = "http://localhost:9843";
     public static final String PAYMENTS = "/payments";
-    public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_8080 + PAYMENTS;
+    public static final String HTTP_LOCALHOST_8080_PAYMENTS = HTTP_LOCALHOST_9843 + PAYMENTS;
 
     private final PaymentsProcessedApiClient paymentsProcessedApiClient = new PaymentsProcessedApiClient(
-            null, new ResponseHandler(), configuredMapper(), WebClient.create(),
+            null, new ResponseHandler(), configuredMapper(), RestClient.create(),
             null, null, null);
 
     private static ObjectMapper configuredMapper() {
@@ -114,17 +114,16 @@ class PaymentsProcessedApiClientWireMockTest {
         stubFor(patch(urlEqualTo(PAYMENTS))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
-                        .withFixedDelay(7000))); // 7-second delay
+                        .withFixedDelay(7000)));
 
-        // Configure WebClient with a timeout
         HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(6)); // 6-second timeout
-        WebClient webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .responseTimeout(Duration.ofSeconds(6));
+        RestClient restClient = RestClient.builder()
+                .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
                 .build();
 
         PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(),
-                configuredMapper(), webClient, null, null, null);
+                configuredMapper(), restClient, null, null, null);
 
         // Act & Assert
         Assertions.assertThrows(Exception.class, () ->

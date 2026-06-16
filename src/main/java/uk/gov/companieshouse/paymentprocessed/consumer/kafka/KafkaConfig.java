@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -27,8 +28,6 @@ import payments.payment_processed;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.serdes.KafkaPayloadDeserialiser;
 import uk.gov.companieshouse.paymentprocessed.consumer.serdes.KafkaPayloadSerialiser;
-
-import java.util.Map;
 
 @Configuration
 @EnableKafka

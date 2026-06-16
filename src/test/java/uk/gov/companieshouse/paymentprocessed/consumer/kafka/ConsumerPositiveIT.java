@@ -1,6 +1,24 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.patch;
+import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.GET_URI;
+import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.RESOURCE_LINK;
+import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentProcessed;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayOutputStream;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -19,28 +37,7 @@ import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.api.model.payment.PaymentResponse;
 import uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.patch;
-import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.GET_URI;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.RESOURCE_LINK;
-import static uk.gov.companieshouse.paymentprocessed.consumer.utils.TestUtils.getPaymentProcessed;
-
-@SpringBootTest(properties = {
-        "payments.api.url=http://localhost:8889",
-})
+@SpringBootTest(properties = {"payments.api.url=http://localhost:8889"})
 class ConsumerPositiveIT extends AbstractKafkaIT {
 
     private static final String PAYMENT_RESOURCE_PARAMS = "/paymentResource?subNumber=000-016&formType=1123";

@@ -1,14 +1,20 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.client;
 
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.exception.URIValidationException;
@@ -18,13 +24,6 @@ import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 @Component
 public class PaymentsProcessedApiClient {
@@ -36,13 +35,13 @@ public class PaymentsProcessedApiClient {
     private final Supplier<InternalApiClient> internalApiClientFactory;
     private final ResponseHandler responseHandler;
     private final ObjectMapper objectMapper;
-    private final WebClient webClient;
+    private final RestClient restClient;
     private final String paymentsApiUrl;
     private final String skipGoneResourceId;
     private final Boolean skipGoneResource;
 
     PaymentsProcessedApiClient(Supplier<InternalApiClient> internalApiClientFactory, ResponseHandler responseHandler,
-            ObjectMapper objectMapper, WebClient webClient, @Value("${payments.api.url}")
+            ObjectMapper objectMapper, RestClient restClient, @Value("${payments.api.url}")
             String paymentsApiUrl,
             @Value("${skip.gone.resource.id}")
             String skipGoneResourceId,
@@ -51,7 +50,7 @@ public class PaymentsProcessedApiClient {
         this.internalApiClientFactory = internalApiClientFactory;
         this.objectMapper = objectMapper;
         this.responseHandler = responseHandler;
-        this.webClient = webClient;
+        this.restClient = restClient;
         this.paymentsApiUrl = paymentsApiUrl;
         this.skipGoneResourceId = skipGoneResourceId;
         this.skipGoneResource = skipGoneResource;
@@ -100,23 +99,23 @@ public class PaymentsProcessedApiClient {
         try {
             loggingRequestValue(paymentsPatchUri, paymentPatchRequestApi);
             String requestId = DataMapHolder.getRequestId();
-            ResponseEntity<Void> response = webClient.patch()
+            ResponseEntity<Void> response = restClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
-                    .bodyValue(paymentPatchRequestApi)
+                    .body(paymentPatchRequestApi)
                     .headers(headers -> {
                         if (requestId != null && !requestId.trim().isEmpty()) {
                             headers.add("x-request-id", requestId);
                         }
-                    }).retrieve()
-                    .toBodilessEntity()
-                    .block();
-            if (response != null) {
+                    })
+                    .retrieve()
+                    .toBodilessEntity();
+            if (response.getStatusCode().is2xxSuccessful()) {
                 LOGGER.info(String.format("Successfully called %s for resource URI: %s and status code: %s",
-                                PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode()),
+                                PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode().value()),
                         DataMapHolder.getLogMap());
             }
-        } catch (WebClientResponseException ex) {
+        } catch (RestClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {
             String defaultErrorMessage = "Error response calling %s".formatted(PATCH_PAYMENT_CALL);

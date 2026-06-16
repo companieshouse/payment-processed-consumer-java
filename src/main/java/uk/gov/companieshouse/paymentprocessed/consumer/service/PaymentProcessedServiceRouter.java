@@ -1,14 +1,14 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.service;
 
 
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
 import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 import payments.payment_processed;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 @Component
 public class PaymentProcessedServiceRouter {

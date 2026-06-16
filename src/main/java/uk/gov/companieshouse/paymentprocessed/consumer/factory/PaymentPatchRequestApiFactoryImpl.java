@@ -1,9 +1,8 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.factory;
 
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
-
-import java.time.Instant;
 
 @Component
 public class PaymentPatchRequestApiFactoryImpl implements PaymentPatchRequestApiFactory {

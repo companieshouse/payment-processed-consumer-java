@@ -1,5 +1,8 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.service;
 
+import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
+
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
@@ -10,10 +13,6 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 import uk.gov.companieshouse.paymentprocessed.consumer.client.PaymentsProcessedApiClient;
 import uk.gov.companieshouse.paymentprocessed.consumer.factory.PaymentPatchRequestApiFactoryImpl;
 import uk.gov.companieshouse.paymentprocessed.consumer.logging.DataMapHolder;
-
-import java.util.Optional;
-
-import static uk.gov.companieshouse.paymentprocessed.consumer.Application.NAMESPACE;
 
 @Service
 public class PaymentProcessedService {
