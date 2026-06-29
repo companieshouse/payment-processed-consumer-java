@@ -322,6 +322,86 @@ class PaymentsProcessedApiClientTest {
     }
 
     @Test
+    void shouldProduceSameByteLengthForSamePaymentPatchRequest() throws Exception {
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi()
+                .status("paid")
+                .paymentReference("REF-001")
+                .paidAt(java.time.Instant.parse("2026-06-29T10:00:00.000Z"));
+
+        ObjectMapper mapper = configuredMapper();
+
+        byte[] first  = mapper.writeValueAsBytes(patchRequest);
+        byte[] second = mapper.writeValueAsBytes(patchRequest);
+        byte[] third  = mapper.writeValueAsBytes(patchRequest);
+
+        assertThat(first).hasSameSizeAs(second);
+        assertThat(second).hasSameSizeAs(third);
+        assertThat(new String(first)).isEqualTo(new String(second));
+        assertThat(new String(second)).isEqualTo(new String(third));
+    }
+
+    @Test
+    void shouldSetContentLengthHeaderOnPatchRequest() throws Exception {
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi().status("paid");
+        byte[] expectedBytes = configuredMapper().writeValueAsBytes(patchRequest);
+        String expectedLength = String.valueOf(expectedBytes.length);
+
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(header("Content-Length", expectedLength))
+                .andRespond(withStatus(HttpStatus.OK));
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
+
+        client.patchPayment("http://localhost:8080/payments/1", patchRequest);
+
+        server.verify();
+    }
+
+    @Test
+    void shouldSetContentLengthZeroForEmptyPatchRequest() throws Exception {
+        PaymentPatchRequestApi patchRequest = new PaymentPatchRequestApi();
+        byte[] expectedBytes = configuredMapper().writeValueAsBytes(patchRequest);
+        String expectedLength = String.valueOf(expectedBytes.length);
+
+        server.expect(requestTo("http://localhost:8080/payments/1"))
+                .andExpect(method(HttpMethod.PATCH))
+                .andExpect(header("Content-Length", expectedLength))
+                .andRespond(withStatus(HttpStatus.OK));
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                mock(ResponseHandler.class), configuredMapper(), restClient,
+                "http://payments", null, false);
+
+        client.patchPayment("http://localhost:8080/payments/1", patchRequest);
+
+        server.verify();
+    }
+
+    @Test
+    void shouldHandleJsonProcessingExceptionWhenSerializingPatchBody() throws Exception {
+        ObjectMapper mockMapper = mock(ObjectMapper.class);
+        JsonProcessingException jsonEx = mock(JsonProcessingException.class);
+        // writeValueAsString used in loggingRequestValue - succeeds
+        when(mockMapper.writeValueAsString(any())).thenReturn("{}");
+        // writeValueAsBytes used for body serialization - fails
+        when(mockMapper.writeValueAsBytes(any())).thenThrow(jsonEx);
+
+        ResponseHandler handler = mock(ResponseHandler.class);
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
+                handler, mockMapper, restClient,
+                "http://payments", null, false);
+
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
+
+        // handler called with the byte conversion error message - no HTTP request made
+        verify(handler).handle("Patch Payment byte conversion failed ", "http://localhost:8080/payments/1", jsonEx);
+        server.verify(); // no requests expected
+    }
+
+    @Test
     void shouldHandleJsonProcessingExceptionWhenLoggingRequestValue() throws Exception {
         server.expect(requestTo("http://localhost:8080/payments/1"))
                 .andExpect(method(HttpMethod.PATCH))
@@ -330,16 +410,17 @@ class PaymentsProcessedApiClientTest {
         ObjectMapper mockMapper = mock(ObjectMapper.class);
         JsonProcessingException jsonEx = mock(JsonProcessingException.class);
         when(mockMapper.writeValueAsString(any())).thenThrow(jsonEx);
+        when(mockMapper.writeValueAsBytes(any())).thenReturn("{}".getBytes());
 
         ResponseHandler handler = mock(ResponseHandler.class);
         PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null,
                 handler, mockMapper, restClient,
                 "http://payments", null, false);
 
-        client.patchPayment("/payments/1", new PaymentPatchRequestApi());
+        client.patchPayment("http://localhost:8080/payments/1", new PaymentPatchRequestApi());
 
         server.verify();
-        verify(handler).handle("Patch Payment", "/payments/1", jsonEx);
+        verify(handler).handle("Patch Payment", "http://localhost:8080/payments/1", jsonEx);
     }
 
     private static ObjectMapper configuredMapper() {

@@ -22,7 +22,7 @@ public class ResponseHandler {
     private static final String API_INFO_RESPONSE_MESSAGE = "%s failed, resource URI: %s, status code: %d. exception message : %s and stack trace : %s";
     private static final String API_ERROR_RESPONSE_MESSAGE = "%s failed, resource URI: %s, status code: %d.";
     private static final String URI_VALIDATION_EXCEPTION_MESSAGE = "%s failed due to invalid URI";
-    private static final String JSON_PARSE_EXCEPTION_MESSAGE = "%s failed due  to unable to parse response for resource ID: %s";
+    private static final String JSON_PROCESS_EXCEPTION_MESSAGE = "%s failed, unable to process json for resource ID: %s";
 
     public void handle(String apiCall, URIValidationException ex) {
         LOGGER.error(String.format(URI_VALIDATION_EXCEPTION_MESSAGE, apiCall), ex, DataMapHolder.getLogMap());
@@ -65,7 +65,7 @@ public class ResponseHandler {
     }
 
     public void handle(String apiCall, String resourceUri, JsonProcessingException ex) {
-        LOGGER.error(String.format(JSON_PARSE_EXCEPTION_MESSAGE, apiCall, resourceUri),
+        LOGGER.error(String.format(JSON_PROCESS_EXCEPTION_MESSAGE, apiCall, resourceUri),
                 ex, DataMapHolder.getLogMap());
     }
 
