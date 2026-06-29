@@ -3,23 +3,23 @@ provider "aws" {
 }
 
 terraform {
-  backend "s3" {
-  }
-  required_version = "~> 1.3"
+  required_version = ">= 1.3.0, < 2.0.0"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.54.0"
+      version = ">= 6.0, < 7.0"
     }
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 3.18.0"
+      version = ">= 5.0, < 6.0"
     }
   }
+  backend "s3" {}
 }
 
 module "ecs-service" {
-  source = "git@github.com:companieshouse/terraform-modules//aws/ecs/ecs-service?ref=1.0.381"
+  source = "git@github.com:companieshouse/terraform-modules//aws/ecs/ecs-service?ref=1.0.390"
 
 
   # Environmental configuration
@@ -69,7 +69,7 @@ module "ecs-service" {
 }
 
 module "secrets" {
-  source      = "git@github.com:companieshouse/terraform-modules//aws/parameter-store?ref=1.0.381"
+  source      = "git@github.com:companieshouse/terraform-modules//aws/parameter-store?ref=1.0.390"
   name_prefix = "${local.service_name}-${var.environment}"
   kms_key_id  = data.aws_kms_key.kms_key.id
   secrets     = nonsensitive(local.service_secrets)
