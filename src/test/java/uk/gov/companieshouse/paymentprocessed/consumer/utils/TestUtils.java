@@ -3,7 +3,6 @@ package uk.gov.companieshouse.paymentprocessed.consumer.utils;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import payments.payment_processed;
 import uk.gov.companieshouse.api.model.ApiResponse;
@@ -57,7 +56,6 @@ public class TestUtils {
         return paymentPatchRequestApi;
     }
 
-    @NotNull
     public static payment_processed getPaymentProcessed() {
         payment_processed paymentProcessed = new payment_processed();
         paymentProcessed.setAttempt(1);

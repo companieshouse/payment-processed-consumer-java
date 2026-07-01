@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -86,7 +87,8 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         assertThat(AbstractKafkaIT.recordsPerTopic(consumerRecords, AbstractKafkaIT.CONSUMER_ERROR_TOPIC)).isZero();
         assertThat(AbstractKafkaIT.recordsPerTopic(consumerRecords, AbstractKafkaIT.CONSUMER_INVALID_TOPIC)).isZero();
         verify(getRequestedFor(urlEqualTo(GET_URI)));
-        verify(patchRequestedFor(urlEqualTo(resource)));
+        verify(patchRequestedFor(urlEqualTo(resource))
+                .withHeader("Content-Length", matching("[1-9][0-9]*")));
     }
 
     @ParameterizedTest
@@ -125,6 +127,7 @@ class ConsumerPositiveIT extends AbstractKafkaIT {
         assertThat(AbstractKafkaIT.recordsPerTopic(consumerRecords, AbstractKafkaIT.CONSUMER_ERROR_TOPIC)).isZero();
         assertThat(AbstractKafkaIT.recordsPerTopic(consumerRecords, AbstractKafkaIT.CONSUMER_INVALID_TOPIC)).isZero();
         verify(getRequestedFor(urlEqualTo(GET_URI)));
-        verify(patchRequestedFor(urlEqualTo(RESOURCE_LINK + "/refunds")));
+        verify(patchRequestedFor(urlEqualTo(RESOURCE_LINK + "/refunds"))
+                .withHeader("Content-Length", matching("[1-9][0-9]*")));
     }
 }

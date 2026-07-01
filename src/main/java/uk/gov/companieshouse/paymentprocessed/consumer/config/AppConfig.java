@@ -47,7 +47,7 @@ public class AppConfig {
         return RestClient.builder()
                 .baseUrl(paymentsApiUrl)
                 .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
-                .defaultHeader("Authorization", chsInternalApiKey)
+                .defaultHeaders(headers -> headers.setBasicAuth(chsInternalApiKey,""))
                 .build();
     }
 

@@ -99,11 +99,13 @@ public class PaymentsProcessedApiClient {
         try {
             loggingRequestValue(paymentsPatchUri, paymentPatchRequestApi);
             String requestId = DataMapHolder.getRequestId();
+            byte[] bodyBytes = objectMapper.writeValueAsBytes(paymentPatchRequestApi);
             ResponseEntity<Void> response = restClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
                     .body(paymentPatchRequestApi)
                     .headers(headers -> {
+                        headers.setContentLength(bodyBytes.length);
                         if (requestId != null && !requestId.trim().isEmpty()) {
                             headers.add("x-request-id", requestId);
                         }
@@ -115,6 +117,9 @@ public class PaymentsProcessedApiClient {
                                 PATCH_PAYMENT_CALL, paymentsPatchUri, response.getStatusCode().value()),
                         DataMapHolder.getLogMap());
             }
+        } catch (JsonProcessingException ex) {
+            String errorMessage = PATCH_PAYMENT_CALL+" byte conversion failed ";
+            responseHandler.handle(errorMessage, paymentsPatchUri, ex);
         } catch (RestClientResponseException ex) {
             responseHandler.handle(PATCH_PAYMENT_CALL, paymentsPatchUri, ex);
         } catch (Exception ex) {
