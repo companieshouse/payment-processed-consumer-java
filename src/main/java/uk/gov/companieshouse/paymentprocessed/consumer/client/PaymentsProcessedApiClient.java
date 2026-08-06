@@ -103,7 +103,7 @@ public class PaymentsProcessedApiClient {
             ResponseEntity<Void> response = restClient.patch()
                     .uri(paymentsPatchUri)
                     .contentType(MediaType.valueOf(APPLICATION_MERGE_PATCH_JSON))
-                    .body(paymentPatchRequestApi)
+                    .body(bodyBytes)
                     .headers(headers -> {
                         headers.setContentLength(bodyBytes.length);
                         if (requestId != null && !requestId.trim().isEmpty()) {
