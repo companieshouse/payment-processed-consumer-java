@@ -8,11 +8,11 @@ import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.ReactorClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import reactor.netty.http.client.HttpClient;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.http.ApiKeyHttpClient;
+import java.net.http.HttpClient;
 
 @Configuration
 public class AppConfig {
@@ -20,8 +20,11 @@ public class AppConfig {
     @Value("${internal.api-key}")
     private String chsInternalApiKey;
 
-    @Value("${timeout.milliseconds}")
-    private int timeoutMilliseconds;
+    @Value("${read.timeout.milliseconds}")
+    private int readTimeoutMilliseconds;
+
+    @Value("${connection.timeout.milliseconds}")
+    private int connectionTimeoutMilliseconds;
 
     @Value("${payments.api.url}")
     private String paymentsApiUrl;
@@ -41,12 +44,14 @@ public class AppConfig {
 
     @Bean
     public RestClient restClient() {
-        HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofMillis(timeoutMilliseconds));
-
+        HttpClient httpClient=  HttpClient.newBuilder()
+                .connectTimeout((Duration.ofMillis(connectionTimeoutMilliseconds)))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(readTimeoutMilliseconds);
         return RestClient.builder()
                 .baseUrl(paymentsApiUrl)
-                .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
+                .requestFactory(requestFactory)
                 .defaultHeaders(headers -> headers.setBasicAuth(chsInternalApiKey,""))
                 .build();
     }

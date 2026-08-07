@@ -15,9 +15,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.client.ReactorClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import reactor.netty.http.client.HttpClient;
+import java.net.http.HttpClient;
 import uk.gov.companieshouse.api.model.payment.PaymentPatchRequestApi;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.NonRetryableException;
 import uk.gov.companieshouse.paymentprocessed.consumer.exception.RetryableException;
@@ -115,11 +115,13 @@ class PaymentsProcessedApiClientWireMockTest {
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withFixedDelay(7000)));
-
-        HttpClient httpClient = HttpClient.create()
-                .responseTimeout(Duration.ofSeconds(6));
+        HttpClient httpClient=  HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(6))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(6000);
         RestClient restClient = RestClient.builder()
-                .requestFactory(new ReactorClientHttpRequestFactory(httpClient))
+                .requestFactory(requestFactory)
                 .build();
 
         PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(),
@@ -132,5 +134,26 @@ class PaymentsProcessedApiClientWireMockTest {
 
         // Verify
         verify(1, patchRequestedFor(urlEqualTo(PAYMENTS)));
+    }
+
+    @Test
+    void shouldThrowConnectTimeoutException() {
+        // Arrange
+        PaymentPatchRequestApi paymentPatchRequestApi = getPaymentPatchRequestApi();
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(500))
+                .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        RestClient restClient = RestClient.builder()
+                .requestFactory(requestFactory)
+                .build();
+
+        PaymentsProcessedApiClient client = new PaymentsProcessedApiClient(null, new ResponseHandler(),
+                configuredMapper(), restClient, null, null, null);
+
+        // Act & Assert - connection can never be established, so patch fails via connect timeout
+        Assertions.assertThrows(Exception.class, () ->
+                client.patchPayment("http://192.0.2.1:9843/payments", paymentPatchRequestApi)
+        );
     }
 }
