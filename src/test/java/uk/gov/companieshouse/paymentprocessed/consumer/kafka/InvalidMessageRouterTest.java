@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import payments.payment_processed;
 
-
 @ExtendWith(MockitoExtension.class)
 class InvalidMessageRouterTest {
 

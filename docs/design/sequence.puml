@@ -2,6 +2,7 @@
 actor Kafka
 participant "Service" as S
 participant "Payments API" as API
+participant "Transaction Service" as TXN
 
 Kafka -> S: New message (paymentProcessedConsumer)
 S -> S: Unmarshal message (Avro -> paymentProcessedConsumer)
@@ -16,9 +17,9 @@ else Success
     else Success
         S -> S: IsRefund?
         alt  Refundable
-            S -> API: Send Refund Patch request
+            S -> TXN: Send Refund Patch request
         else Non Refund Type Payment
-            S -> API: Send Patch request
+            S -> TXN: Send Patch request
             alt PatchPaymentDetails error
                 S -> S: Log error
                 S -> Kafka: Send to retry topic
