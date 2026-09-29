@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.paymentprocessed.consumer.kafka;
 
 import java.util.Map;
+import org.apache.avro.util.ClassSecurityValidator;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -37,6 +38,13 @@ public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaBrokers;
+
+    public KafkaConfig() {
+        // Avro 1.12+ requires explicit class trust for reflection-based (de)serialisation.
+        // This accepts all classes. Long term, we could consider using the schema registry to avoid
+        // runtime class validation entirely. However, that would make integration testing more complex.
+        ClassSecurityValidator.setGlobal(clazz -> true);
+    }
 
 
     @Bean

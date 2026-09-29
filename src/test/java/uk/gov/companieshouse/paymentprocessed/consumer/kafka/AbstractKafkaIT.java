@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.avro.util.ClassSecurityValidator;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -15,6 +16,7 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +50,14 @@ abstract class AbstractKafkaIT {
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry registry) {
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
+
+    @BeforeAll
+    static void startKafka() {
+        // Avro 1.12+ requires explicit class trust for serialization.
+        // This accepts all classes. Long term, we could consider using the schema registry to avoid
+        // runtime class validation entirely. However, that would make integration testing more complex.
+        ClassSecurityValidator.setGlobal((clazz -> true));
     }
 
     @BeforeEach

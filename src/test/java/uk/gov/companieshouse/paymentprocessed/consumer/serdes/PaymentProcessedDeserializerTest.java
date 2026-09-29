@@ -13,7 +13,9 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.reflect.ReflectDatumWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
+import org.apache.avro.util.ClassSecurityValidator;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import payments.payment_processed;
@@ -21,6 +23,12 @@ import uk.gov.companieshouse.paymentprocessed.consumer.exception.InvalidPayloadE
 
 class PaymentProcessedDeserializerTest {
 
+    @BeforeAll
+    static void trustAvroClasses() {
+        // Avro 1.12+ requires explicit class trust for reflection-based (de)serialisation.
+        // These unit tests exercise Avro directly without booting Spring, so KafkaConfig does not apply.
+        ClassSecurityValidator.setGlobal(clazz -> true);
+    }
 
     @Test
     void testShouldSuccessfullyDeserializePaymentProcessed() throws IOException {

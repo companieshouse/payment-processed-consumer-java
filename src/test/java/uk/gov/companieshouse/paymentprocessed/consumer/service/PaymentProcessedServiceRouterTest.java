@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import payments.payment_processed;
-
 class PaymentProcessedServiceRouterTest {
 
     private PaymentProcessedService paymentProcessedService;

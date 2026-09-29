@@ -30,7 +30,6 @@ public class PaymentProcessedService {
     }
 
     public void processMessage(payment_processed paymentProcessed) {
-        //Naming convention to be fixed as per https://companieshouse.atlassian.net/browse/KAF-99
         String paymentResourceId = paymentProcessed.getPaymentResourceId();
         DataMapHolder.get().resourceId(paymentResourceId);
         Optional<PaymentResponse> paymentResponseOptional = paymentsProcessedApiClient.getPayment(paymentResourceId);
