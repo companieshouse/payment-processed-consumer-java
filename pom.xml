@@ -30,9 +30,7 @@
         <private-api-sdk-java.version>7.2.52</private-api-sdk-java.version>
         <!--External-->
         <avro.version>1.12.2</avro.version>
-<!--        <kafka-clients.version>4.4.0</kafka-clients.version>-->
         <spring.boot.version>4.1.2</spring.boot.version>
-        <opentelemetry-bom.version>2.30.0</opentelemetry-bom.version>
 
         <!--Test-->
         <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
@@ -67,13 +65,6 @@
                 <version>${spring.boot.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>io.opentelemetry.instrumentation</groupId>
-                <artifactId>opentelemetry-instrumentation-bom</artifactId>
-                <version>${opentelemetry-bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
