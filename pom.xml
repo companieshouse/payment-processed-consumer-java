@@ -27,16 +27,12 @@
         <!--Companies House-->
         <ch-dependency-bom.version>0.1.42</ch-dependency-bom.version>
         <ch-test-bom.version>0.1.42</ch-test-bom.version>
-        <private-api-sdk-java.version>7.2.29</private-api-sdk-java.version>
+        <private-api-sdk-java.version>7.2.52</private-api-sdk-java.version>
         <!--External-->
         <avro.version>1.12.2</avro.version>
-        <guava.version>33.7.2-jre</guava.version>
-        <jackson-annotations.version>2.22</jackson-annotations.version>
-        <jakarta-annotation-api.version>3.0.0</jakarta-annotation-api.version>
-        <kafka-clients.version>4.4.0</kafka-clients.version>
+<!--        <kafka-clients.version>4.4.0</kafka-clients.version>-->
         <spring.boot.version>4.1.2</spring.boot.version>
         <opentelemetry-bom.version>2.30.0</opentelemetry-bom.version>
-        <opentelemetry-logback-appender.version>2.30.0-alpha</opentelemetry-logback-appender.version>
 
         <!--Test-->
         <wiremock-standalone.version>3.13.2</wiremock-standalone.version>
@@ -86,6 +82,12 @@
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
             <artifactId>kafka-models</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>uk.gov.companieshouse</groupId>
@@ -106,7 +108,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson-annotations.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -123,12 +124,10 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-            <version>${jakarta-annotation-api.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
@@ -138,7 +137,6 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.xerial.snappy</groupId>
@@ -179,7 +177,6 @@
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
             <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-            <version>${opentelemetry-logback-appender.version}</version>
             <scope>compile</scope>
         </dependency>
         <!--Test-->
